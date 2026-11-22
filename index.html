@@ -1795,13 +1795,15 @@ function updateMonks(dt,elapsed){
         var p3=m.bowPhase;
         var bend=p3<.9?(p3/.9):(p3<2.1?1:Math.max(0,1-(p3-2.1)/1.1));
         var easeBend=bend*bend*(3-2*bend);   // smoothstep
-        if(b.spine)b.spine.rotation.x=.06+easeBend*1.05;   // 上身俯向佛像
-        if(b.chest)b.chest.rotation.x=easeBend*.18;
-        if(b.head)b.head.rotation.x=easeBend*.12;
-        if(b.upperarmL)b.upperarmL.rotation.x=-.55-easeBend*.22;
-        if(b.upperarmR)b.upperarmR.rotation.x=-.55-easeBend*.22;
-        if(b.forearmL)b.forearmL.rotation.x=-.75-easeBend*.15;
-        if(b.forearmR)b.forearmR.rotation.x=-.75-easeBend*.15;
+        // 俯身朝佛像：avatar 面朝 -Z，spine 需负向旋转才前俯
+        if(b.spine)b.spine.rotation.x=.06-easeBend*1.0;
+        if(b.chest)b.chest.rotation.x=-easeBend*.14;
+        if(b.head)b.head.rotation.x=-easeBend*.08;
+        // 胳膊保持静坐合掌基准（-0.55/-0.75），只随上身俯下，不再额外翻转外张
+        if(b.upperarmL)b.upperarmL.rotation.x=-.55;
+        if(b.upperarmR)b.upperarmR.rotation.x=-.55;
+        if(b.forearmL)b.forearmL.rotation.x=-.75;
+        if(b.forearmR)b.forearmR.rotation.x=-.75;
         if(m.bowing<=0){m.bowPhase=0;m.bowTimer=9+Math.random()*16;}
       }else{
         // 平时：端坐，双臂合于腹前
