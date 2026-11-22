@@ -1715,8 +1715,8 @@ function addMonk(o){
     bones.hips.position.y=.30;
     if(bones.thighL)bones.thighL.rotation.x=-1.15;
     if(bones.thighR)bones.thighR.rotation.x=-1.15;
-    if(bones.shinL)bones.shinL.rotation.x=1.9;
-    if(bones.shinR)bones.shinR.rotation.x=1.9;
+    if(bones.shinL){bones.shinL.rotation.x=-1.15;bones.shinL.rotation.z=.55;}
+    if(bones.shinR){bones.shinR.rotation.x=-1.15;bones.shinR.rotation.z=-.55;}
     if(bones.upperarmL)bones.upperarmL.rotation.x=-.55;
     if(bones.upperarmR)bones.upperarmR.rotation.x=-.55;
     if(bones.forearmL)bones.forearmL.rotation.x=-.75;
@@ -1786,8 +1786,8 @@ function updateMonks(dt,elapsed){
       if(b.hips)b.hips.position.y=.30+Math.sin(elapsed*1.2+m.seed)*.012;
       if(b.thighL)b.thighL.rotation.x=-1.15;
       if(b.thighR)b.thighR.rotation.x=-1.15;
-      if(b.shinL)b.shinL.rotation.x=1.9;
-      if(b.shinR)b.shinR.rotation.x=1.9;
+      if(b.shinL){b.shinL.rotation.x=-1.15;b.shinL.rotation.z=.55;}
+      if(b.shinR){b.shinR.rotation.x=-1.15;b.shinR.rotation.z=-.55;}
       if(b.head)b.head.rotation.y=Math.sin(elapsed*.35+m.seed)*.14;
     }
   });
