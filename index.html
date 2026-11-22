@@ -385,7 +385,7 @@ const mats = {
   wood:material('#7a2f24'), woodLight:material('#9a4530'),
   woodDark:material('#4a231d'), plaster:material('#a8382c'),
   gold:material('#d4ac4a',{metalness:.42,roughness:.52}),
-  grass:material('#7f8a6e'), water:new THREE.MeshPhysicalMaterial({color:'#6f9e96',roughness:.22,metalness:.05,vertexColors:true,transmission:.28,clearcoat:.65,clearcoatRoughness:.18,transparent:true,opacity:.94}),
+  grass:material('#7f8a6e'), water:new THREE.MeshPhysicalMaterial({color:'#6f9e96',roughness:.22,metalness:.05,vertexColors:true,transmission:.35,clearcoat:.6,clearcoatRoughness:.2,transparent:true,opacity:.82}),
   leaf:material('#ffffff',{side:THREE.DoubleSide}), paper:material('#f6e4bb',{emissive:'#e5d2a2',emissiveIntensity:.3}),
 };
 const roofMaterials = {
@@ -1061,11 +1061,11 @@ const bridge = new THREE.Group();
 bridge.position.set(19.5,.15,7);
 bridge.rotation.y=-.19;
 scene.add(bridge);
-const bridgeDeck = z => .12 + Math.sin(clamp((z+6.2)/12.4,0,1)*Math.PI)*.55;
-const bridgePeg=new THREE.InstancedMesh(new THREE.CylinderGeometry(.026,.021,.014,8),material('#88705a'),52);
+const bridgeDeck = z => .12 + Math.sin(clamp((z+11)/22,0,1)*Math.PI)*.55;
+const bridgePeg=new THREE.InstancedMesh(new THREE.CylinderGeometry(.026,.021,.014,8),material('#88705a'),88);
 const peg=new THREE.Object3D();
-for(let i=0;i<26;i++){
-  const z=-6.2+i*12.4/25;
+for(let i=0;i<44;i++){
+  const z=-11+i*22/43;
   const plank=carvedBox(2.07,.14,.483,i%3===0?mats.woodLight:mats.wood,0,bridgeDeck(z),z,bridge,.021);
   walkSurfaces.push(plank);
   for(const [j,x] of [-.78,.78].entries()){
@@ -1076,20 +1076,20 @@ for(let i=0;i<26;i++){
 }
 bridge.add(bridgePeg);
 for(const sign of [-1,1]){
-  carvedBox(2.27,.25,.87,mats.stone,0,.02,sign*6.48,bridge,.043);
-  walkSurfaces.push(carvedBox(2.34,.095,.69,mats.stoneTop,0,.160,sign*6.52,bridge,.032));
-  walkSurfaces.push(carvedBox(2.43,.15,.39,mats.stoneTop,0,-.067,sign*6.94,bridge,.027));
+  carvedBox(2.27,.25,.87,mats.stone,0,.02,sign*11.2,bridge,.043);
+  walkSurfaces.push(carvedBox(2.34,.095,.69,mats.stoneTop,0,.160,sign*11.24,bridge,.032));
+  walkSurfaces.push(carvedBox(2.43,.15,.39,mats.stoneTop,0,-.067,sign*11.6,bridge,.027));
 }
 for (const x of [-.93,.93]) {
   for (let i=0;i<7;i++) {
-    const z=-5.92+i*1.97;
+    const z=-10.5+i*3.5;
     const y=bridgeDeck(z);
     carvedBox(.115,.56,.12,mats.wood,x,y+.30,z,bridge,.018);
     carvedBox(.16,.07,.16,mats.woodLight,x,y+.60,z,bridge,.020);
   }
   for (const height of [-.11,.34,.61]) {
     const rail=Array.from({length:25},(_,i)=>{
-      const z=-6.1+i*12.2/24;
+      const z=-10.9+i*21.8/24;
       return new THREE.Vector3(x,bridgeDeck(z)+height,z);
     });
     curveTube(rail,height<0?.095:.052,mats.woodDark,bridge,36).castShadow=true;
@@ -1150,7 +1150,7 @@ bladeGeo.setIndex([0,1,2,1,3,2,2,3,4]);
 bladeGeo.computeVertexNormals();
 const gardenClumps=[
   [-6.4,4.9],[-8.8,7.1],[-6.1,12.8],[-9.7,15.1],[-13.1,13.2],[-15.3,8.1],
-  [6.1,2.1],[8.1,1.1],[8.05,12.4],[11.6,13.6],[14.8,12.9],[17.1,9.4],[16.6,9.7],[17.5,4.4],
+  [6.1,2.1],[8.1,1.1],[8.05,12.4],[11.6,13.6],[14.8,12.9],
   [16.7,.6],[19.9,-2],[14.1,-7.1],[-14.1,-4.3],[-13.9,-9.4],[21.3,-10.8]
 ];
 const grassBlades=new THREE.InstancedMesh(bladeGeo,groundPlantMaterial,gardenClumps.length*18);
@@ -1306,29 +1306,54 @@ function updateBirds(dt,t){
   }
   birdBody.instanceMatrix.needsUpdate=birdWingL.instanceMatrix.needsUpdate=birdWingR.instanceMatrix.needsUpdate=true;
 }
-// ===== 锦鲤：韩国素材无鱼，程序化实现 =====
+// ===== 锦鲤：韩国素材无鱼，程序化实现（像锦鲤、慢游、成群、忽隐忽现）=====
 var koiFish=[],fishGroup=new THREE.Group();scene.add(fishGroup);
 var koiColors=['#e07a35','#f0e6d0','#d94b32','#e8b84a'];
-for(var fi=0;fi<18;fi++){
+for(var fi=0;fi<16;fi++){
   var fg=new THREE.Group();fishGroup.add(fg);
-  var col=koiColors[fi%4],fm=material(col,{roughness:.55});
-  var body=sphere(.16,fm,0,0,0,fg,1,.55,.42);
-  var tail=new THREE.Mesh(new THREE.ConeGeometry(.11,.22,4),fm);
-  tail.rotation.x=Math.PI/2;tail.position.z=.20;tail.scale.set(1,1,.5);fg.add(tail);
-  koiFish.push({g:fg,ang:Math.random()*6.28,rad:2+Math.random()*5,speed:.12+Math.random()*.18,
-                depth:.15+Math.random()*.25,phase:Math.random()*6.28,y:waterY+.02});
+  var col=koiColors[fi%4];
+  var fm=new THREE.MeshStandardMaterial({color:col,roughness:.5,transparent:true,opacity:.92});
+  // 纺锤形身体：拉长的椭球（沿Z游动方向）
+  var body=new THREE.Mesh(new THREE.SphereGeometry(.13,12,8),fm);
+  body.scale.set(.55,.36,1.5);fg.add(body);
+  // 背鳍
+  var dorsal=new THREE.Mesh(new THREE.ConeGeometry(.07,.17,3),fm);
+  dorsal.position.set(0,.09,-.02);dorsal.scale.set(1,1,.35);fg.add(dorsal);
+  // 尾鳍：两片扁平三角
+  var tail=new THREE.Mesh(new THREE.ConeGeometry(.10,.20,3),fm);
+  tail.rotation.x=-Math.PI/2;tail.position.z=.22;tail.scale.set(1,1,.25);fg.add(tail);
+  // 侧鳍
+  for(var fs of [-1,1]){
+    var fin=new THREE.Mesh(new THREE.ConeGeometry(.05,.11,3),fm);
+    fin.rotation.z=fs*1.1;fin.position.set(fs*.09,-.02,.02);fin.scale.set(1,1,.3);fg.add(fin);
+  }
+  // 分两小群，围绕池心不同区域
+  var group=fi<8?0:1;
+  koiFish.push({g:fg,mat:fm,ang:Math.random()*6.28,
+    rad:group?4.2+Math.random()*1.8:2.0+Math.random()*1.6,
+    speed:(group?-.22:.18)+Math.random()*.10,
+    phase:Math.random()*6.28,dive:Math.random()*6.28,group:group});
 }
 function updateFish(dt,t){
   koiFish.forEach(function(f){
     f.ang+=dt*f.speed;
-    var x=pondCenter.x+Math.cos(f.ang)*f.rad;
-    var z=pondCenter.y+Math.sin(f.ang)*f.rad*.8;
-    f.g.position.set(x,waterY+.03+Math.sin(t*1.5+f.phase)*.02,z);
-    f.g.rotation.y=-f.ang+Math.PI/2;
-    f.g.children[1].rotation.z=Math.sin(t*8+f.phase)*.45;
+    var cx=pondCenter.x+(f.group?2.5:-2.0),cz=pondCenter.y+(f.group?-1.5:1.0);
+    var x=cx+Math.cos(f.ang)*f.rad;
+    var z=cz+Math.sin(f.ang)*f.rad*.72;
+    // 游动方向切线（含群顺逆时针）
+    var vx=-Math.sin(f.ang)*f.rad*f.speed;
+    var vz=Math.cos(f.ang)*f.rad*.72*f.speed;
+    f.g.position.set(x,waterY+.01-Math.sin(t*.4+f.dive)*.03,z);
+    // 鱼头朝游动方向（模型头在 -Z 方向）
+    f.g.rotation.y=Math.atan2(-vx,-vz);
+    // 身体左右摆动 + 尾鳍大幅摆动，像真的在游
+    f.g.rotation.z=Math.sin(t*6+f.phase)*.09;
+    var tail=f.g.children[2];
+    if(tail)tail.rotation.y=Math.sin(t*9+f.phase)*.55;
+    // 忽隐忽现
+    f.mat.opacity=.4+.55*(.5+.5*Math.sin(t*.6+f.dive));
   });
 }
-
 var lanterns=[];
 var lanternMats=[
   material('#ff9a72',{emissive:'#e85a2a',emissiveIntensity:.5}),
@@ -1673,7 +1698,7 @@ addMonk({x:-1.2,y:0,z:6.2,yaw:0,kind:'incense'});
 addMonk({x:0,y:0,z:14,kind:'wander',yaw:0,
   path:[{x:0,z:14},{x:-6,z:10},{x:-10,z:4},{x:-6,z:10}]});
 addMonk({x:12,y:0,z:13,kind:'wander',yaw:0,
-  path:[{x:12,z:13},{x:16,z:9},{x:17,z:4},{x:16,z:9}]});
+  path:[{x:10,z:20},{x:14,z:22},{x:18,z:20},{x:14,z:22}]});
 
 function updateMonks(dt,elapsed){
   staticMonks.forEach(function(m){
@@ -1796,10 +1821,11 @@ function endPointer(e){
 world.addEventListener('pointerup',endPointer);world.addEventListener('pointercancel',e=>{pointers.delete(e.pointerId);gesture=null;});
 world.addEventListener('wheel',e=>{e.preventDefault();distance=clamp(distance+e.deltaY*.006,3.2,17);},{passive:false});
 world.addEventListener('contextmenu',e=>e.preventDefault());
-function bridgeAlong(x,z) {return Math.cos(.19)*(z-6)-Math.sin(.19)*(x-19.5);}
+// 桥判定必须和桥的几何变换一致：桥中心(19.5,7)、rotation.y=-.19、半长11
+function bridgeAlong(x,z) {return Math.cos(.19)*(z-7)-Math.sin(.19)*(x-19.5);}
 function onBridge(x,z,padding=0) {
-  const across=Math.cos(.19)*(x-11)+Math.sin(.19)*(z-6);
-  return Math.abs(across)<1.04+padding && Math.abs(bridgeAlong(x,z))<7.13+padding;
+  const across=Math.cos(.19)*(x-19.5)+Math.sin(.19)*(z-7);
+  return Math.abs(across)<1.04+padding && Math.abs(bridgeAlong(x,z))<11.8+padding;
 }
 function canStand(x,z) {
   if(Math.abs(x)>walkBounds.x||Math.abs(z)>walkBounds.z)return false;
@@ -1818,8 +1844,8 @@ function canStand(x,z) {
 function groundHeight(x,z) {
   if(onBridge(x,z)){
     const along=Math.abs(bridgeAlong(x,z));
-    if(along<=6.43)return .22+bridgeDeck(along);
-    return along<6.865?.3575:.158;
+    if(along<=11)return .22+bridgeDeck(along);
+    return along<11.8?.3575:.158;
   }
   const hallY=hallSurfaceHeight(x,z);if(hallY!==null)return hallY;
   if(Math.abs(x)<5.6&&z<2&&z>=-.55)return .1+clamp((2-z)/2.5,0,1)*1.05;
@@ -1857,7 +1883,7 @@ function tickFootsteps(dt,spd){
 window.QLY={scene,camera,renderer,player,getMonk:function(){return monkMotion},audio:function(){return templeAudio},
   key:function(k,v){if(v===undefined)return walkKeys.has(k);v?walkKeys.add(k):walkKeys.delete(k)},
   getStep:function(){return {acc:footstepAccum,alt:footstepAlt}},tickFoot:tickFootsteps,
-  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
+  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
 function frame(now){
   const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;elapsed+=dt;
   let walking=false;const previousPosition=player.position.clone();
