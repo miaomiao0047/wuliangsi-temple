@@ -673,12 +673,13 @@ const muralMat = new THREE.MeshBasicMaterial({map:mural});
 box(11.2,4.9,.07,muralMat,0,3.85,-8.04,temple);
 for(const y of [1.36,6.35])box(11.6,.18,.25,mats.wood,0,y,-7.94,temple);
 for(const x of [-5.72,5.72])box(.18,5.1,.25,mats.wood,x,3.85,-7.94,temple);
-const signTexture=canvasTexture(768,256,(ctx,w,h)=>{
+const signTexture=canvasTexture(1024,256,(ctx,w,h)=>{
   ctx.fillStyle='#334d40';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#b3a168';ctx.lineWidth=10;ctx.strokeRect(13,13,w-26,h-26);ctx.lineWidth=2;ctx.strokeRect(27,27,w-54,h-54);
-  ctx.font='bold 144px KaiTi, STKaiti, serif';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillStyle='#e2d5a5';ctx.fillText('大 雄 宝 殿',w/2,h/2+6);
+  ctx.font='bold 116px KaiTi, STKaiti, serif';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillStyle='#e2d5a5';
+  ctx.fillText('大 雄 宝 殿',w/2,h/2+2, w-90);  // 限宽，字不出框
 });
-const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.2,1.4),new THREE.MeshBasicMaterial({map:signTexture}));sign.position.set(0,6.45,7.98);temple.add(sign);
-carvedBox(4.46,1.61,.18,mats.woodDark,0,6.45,7.86,temple,.056);
+const sign=new THREE.Mesh(new THREE.PlaneGeometry(6.4,1.6),new THREE.MeshBasicMaterial({map:signTexture}));sign.position.set(0,6.45,7.98);temple.add(sign);
+carvedBox(6.66,1.81,.18,mats.woodDark,0,6.45,7.86,temple,.056);
 function wallScroll(parent, x, y, z, inscription, moon, scale = 1) {
   const ink = canvasTexture(300,768,(ctx,w,h) => {
     const paper = ctx.createLinearGradient(0,0,w,h);
@@ -1522,8 +1523,8 @@ function lantern(x,y,z,s=1,tint='#ead5ac') {
   hanging.push(g);return g;
 }
 // 移除原模板横跨殿前的装饰绳（会斜穿匾额，藏式寺院不需要）
-for(let i=0;i<13;i++){const t=(i+.4)/13;lantern(-11+t*22,7.0-Math.sin(t*Math.PI)*.6-.4,2.3,.55,i%3===0?'#e5b69b':'#ecddbb');}
-for(let i=0;i<7;i++)lantern(-7.3+i*2.4,6.15+Math.cos(i)*.12,-.8,.4,i%2?'#e9d2b1':'#e9bca2');
+for(let i=0;i<13;i++){const t=(i+.4)/13,lx=-11+t*22;if(Math.abs(lx)<4.2)continue;lantern(lx,8.0-Math.sin(t*Math.PI)*.5,2.3,.55,i%3===0?'#e5b69b':'#ecddbb');}
+for(let i=0;i<7;i++){var lx=-7.3+i*2.4;if(Math.abs(lx)<3.8)continue;lantern(lx,7.75+Math.cos(i)*.12,-.8,.4,i%2?'#e9d2b1':'#e9bca2');}
 
 // The character is a real rig. Walking, greeting and bows are posed locally.
 const player=new THREE.Group();player.position.set(0,.06,9.4);player.rotation.y=0;scene.add(player);
@@ -1533,15 +1534,21 @@ const monkMotion = new MonkMotion(avatar);
 let moveTarget=null,action=null,actionStart=0;
 const walkKeys=new Set();
 
-// ===== 静态假人：殿内静坐修行者 + 庭院伫立者，互不干扰 =====
+// ===== 同修假人：多种朝向与行为，各自会动 =====
+// 行为：sitFaceBuddha 面佛静坐 / sitOutward 朝外静坐 / stand 站立合掌 /
+//       incense 上香 / wander 庭院走动
 const staticMonks=[];
-function addStaticMonk(x,y,z,yaw,mode){
-  const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=yaw;scene.add(g);
-  const a=createMonkAvatar();g.add(a);
-  const bones={};a.traverse(function(o){if(o.isBone)bones[o.name.replace(/[_.]/g,'')]=o});
-  if(mode==='sit'){
-    // 静坐：髋部下沉、盘腿、双手合于腹前
-    if(bones.hips)bones.hips.position.y=.30;
+function addMonk(o){
+  var g=new THREE.Group();g.position.set(o.x,o.y,o.z);g.rotation.y=o.yaw||0;scene.add(g);
+  var a=createMonkAvatar();g.add(a);
+  var motion=new MonkMotion(a);
+  var bones={};a.traverse(function(c){if(c.isBone)bones[c.name]=c});
+  a.traverse(function(c){if(c.isMesh){c.castShadow=true;c.receiveShadow=true}});
+  var m={group:g,motion:motion,bones:bones,kind:o.kind,seed:Math.random()*10,
+         phase:Math.random()*Math.PI*2,actionTimer:2+Math.random()*5,
+         walkPath:o.path||null,walkT:Math.random(),yaw0:o.yaw||0,obj:o};
+  if(o.kind==='sitFaceBuddha'||o.kind==='sitOutward'){
+    bones.hips.position.y=.30;
     if(bones.thighL)bones.thighL.rotation.x=-1.15;
     if(bones.thighR)bones.thighR.rotation.x=-1.15;
     if(bones.shinL)bones.shinL.rotation.x=1.9;
@@ -1551,25 +1558,75 @@ function addStaticMonk(x,y,z,yaw,mode){
     if(bones.forearmL)bones.forearmL.rotation.x=-.75;
     if(bones.forearmR)bones.forearmR.rotation.x=-.75;
     if(bones.spine)bones.spine.rotation.x=.06;
-  }else{
-    // 伫立：微微低头合掌
-    if(bones.upperarmL)bones.upperarmL.rotation.x=-.42;
-    if(bones.upperarmR)bones.upperarmR.rotation.x=-.42;
-    if(bones.forearmL)bones.forearmL.rotation.x=-.85;
-    if(bones.forearmR)bones.forearmR.rotation.x=-.85;
-    if(bones.head)bones.head.rotation.x=.10;
   }
-  a.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-  staticMonks.push(g);return g;
+  staticMonks.push(m);return m;
 }
-// 殿内蒲团上静坐的修行者（挑几个蒲团位置）
-[[-6.6,.7],[-2.6,2.7],[2.6,4.7],[6.6,2.7],[-4.6,6.7]].forEach(function(p,i){
-  addStaticMonk(p[0],HALL.floorY+.16,HALL.centerZ+p[1],(i%2?.15:-.15),'sit');
-});
-// 庭院里伫立/缓行的同修
-addStaticMonk(-5.5,0,5.2,-.5,'stand');
-addStaticMonk(5.0,HALL.floorY,-2.0,2.3,'stand');
+// 殿内蒲团：一部分面佛(yaw≈0，脸朝-Z)，一部分朝外(yaw≈π，脸朝+Z面向门口)
+var hallSeats=[
+  {x:-6.6,z:.7,yaw:.05,kind:'sitFaceBuddha'},
+  {x:-2.6,z:2.7,yaw:Math.PI-.12,kind:'sitOutward'},
+  {x:2.6,z:4.7,yaw:.10,kind:'sitFaceBuddha'},
+  {x:6.6,z:2.7,yaw:Math.PI+.15,kind:'sitOutward'},
+  {x:-4.6,z:6.7,yaw:-.18,kind:'sitFaceBuddha'},
+  {x:4.6,z:6.7,yaw:Math.PI,kind:'sitOutward'}
+];
+hallSeats.forEach(function(p){addMonk({x:p.x,y:HALL.floorY+.16,z:HALL.centerZ+p.z,yaw:p.yaw,kind:p.kind})});
+// 殿内站立合掌（面向佛像）
+addMonk({x:-8.6,y:HALL.floorY,z:HALL.centerZ+3.4,yaw:0,kind:'stand'});
+addMonk({x:8.6,y:HALL.floorY,z:HALL.centerZ+3.4,yaw:0,kind:'stand'});
+// 上香者：站在殿内香炉前，面向香炉(-Z)，定时做合掌/跪拜
+addMonk({x:0,y:HALL.floorY,z:HALL.centerZ+4.6,yaw:0,kind:'incense'});
+// 殿前香炉上香者
+addMonk({x:-1.2,y:0,z:6.2,yaw:0,kind:'incense'});
+// 庭院走动者：沿小路径来回
+addMonk({x:0,y:0,z:14,kind:'wander',yaw:0,
+  path:[{x:0,z:14},{x:-6,z:10},{x:-10,z:4},{x:-6,z:10}]});
+addMonk({x:12,y:0,z:13,kind:'wander',yaw:0,
+  path:[{x:12,z:13},{x:16,z:9},{x:17,z:4},{x:16,z:9}]});
 
+function updateMonks(dt,elapsed){
+  staticMonks.forEach(function(m){
+    var b=m.bones;
+    if(m.kind==='wander'&&m.walkPath){
+      // 沿路径走动
+      var path=m.walkPath,seg=m.walkT*(path.length-1),i=Math.min(path.length-2,Math.floor(seg)),f=seg-i;
+      var a=path[i],c=path[i+1];
+      var nx=a.x+(c.x-a.x)*f,nz=a.z+(c.z-a.z)*f;
+      var dx=nx-m.group.position.x,dz=nz-m.group.position.z;
+      var faceYaw=Math.atan2(-dx,-dz);
+      // 平滑转向
+      var diff=faceYaw-m.group.rotation.y;
+      while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
+      m.group.rotation.y+=diff*Math.min(1,dt*3);
+      m.group.position.x=nx;m.group.position.z=nz;
+      m.motion.update(dt,{speed:.85,time:elapsed});
+      m.walkT+=dt*.055;if(m.walkT>=1)m.walkT=0;
+    }else if(m.kind==='incense'){
+      m.actionTimer-=dt;
+      if(m.actionTimer<=0){m.actionTimer=4+Math.random()*4;m.motion.greet();}
+      m.motion.update(dt,{speed:0,time:elapsed});
+      // 轻微摇头
+      if(b.head)b.head.rotation.y=Math.sin(elapsed*.5+m.seed)*.12;
+    }else if(m.kind==='stand'){
+      m.actionTimer-=dt;
+      if(m.actionTimer<=0){m.actionTimer=5+Math.random()*5;m.motion.greet();}
+      m.motion.update(dt,{speed:0,time:elapsed});
+      if(b.head)b.head.rotation.y=Math.sin(elapsed*.4+m.seed)*.18;
+    }else{
+      // 静坐：呼吸微动 + 偶尔抬头/合掌
+      m.actionTimer-=dt;
+      if(m.actionTimer<=0){m.actionTimer=6+Math.random()*6;if(Math.random()<.5)m.motion.greet();}
+      m.motion.update(dt,{speed:0,time:elapsed});
+      // 静坐骨骼需要维持，已设的rotation被motion覆盖风险低，这里保底
+      if(b.hips)b.hips.position.y=.30+Math.sin(elapsed*1.2+m.seed)*.012;
+      if(b.thighL)b.thighL.rotation.x=-1.15;
+      if(b.thighR)b.thighR.rotation.x=-1.15;
+      if(b.shinL)b.shinL.rotation.x=1.9;
+      if(b.shinR)b.shinR.rotation.x=1.9;
+      if(b.head)b.head.rotation.y=Math.sin(elapsed*.35+m.seed)*.14;
+    }
+  });
+}
 addAltarSculptures(temple,mats.gold);
 
 // Held objects follow the same wrist positions as the practice animation.
@@ -1709,7 +1766,7 @@ function tickFootsteps(dt,spd){
 window.QLY={scene,camera,renderer,player,getMonk:function(){return monkMotion},audio:function(){return templeAudio},
   key:function(k,v){if(v===undefined)return walkKeys.has(k);v?walkKeys.add(k):walkKeys.delete(k)},
   getStep:function(){return {acc:footstepAccum,alt:footstepAlt}},tickFoot:tickFootsteps,
-  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount}};
+  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
 function frame(now){
   const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;elapsed+=dt;
   let walking=false;const previousPosition=player.position.clone();
@@ -1727,6 +1784,7 @@ function frame(now){
   if(monkMotion)monkMotion.update(dt,{speed,action,practice,time:elapsed});
   tickFootsteps(dt,speed);
   wishLanterns.forEach(function(g){if(g.userData.rising){wishRise+=dt;g.position.y=Math.min(1.2,wishRise*.45)}});
+  updateMonks(dt,elapsed);
   updateCandles(dt,elapsed);
   updateSmoke(dt);
   updatePracticeProps();
