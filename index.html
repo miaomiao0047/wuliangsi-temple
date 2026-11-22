@@ -1710,13 +1710,14 @@ function addMonk(o){
   a.traverse(function(c){if(c.isMesh){c.castShadow=true;c.receiveShadow=true}});
   var m={group:g,motion:motion,bones:bones,kind:o.kind,seed:Math.random()*10,
          phase:Math.random()*Math.PI*2,actionTimer:2+Math.random()*5,
-         walkPath:o.path||null,walkT:Math.random(),yaw0:o.yaw||0,obj:o};
+         walkPath:o.path||null,walkT:Math.random(),yaw0:o.yaw||0,obj:o,
+         bowTimer:6+Math.random()*14,bowing:0,bowPhase:0};
   if(o.kind==='sitFaceBuddha'||o.kind==='sitOutward'){
-    bones.hips.position.y=.30;
+    bones.hips.position.y=.06;
     if(bones.thighL)bones.thighL.rotation.x=-1.15;
     if(bones.thighR)bones.thighR.rotation.x=-1.15;
-    if(bones.shinL){bones.shinL.rotation.x=-1.15;bones.shinL.rotation.z=.55;}
-    if(bones.shinR){bones.shinR.rotation.x=-1.15;bones.shinR.rotation.z=-.55;}
+    if(bones.shinL){bones.shinL.rotation.x=-.95;bones.shinL.rotation.z=.55;}
+    if(bones.shinR){bones.shinR.rotation.x=-.95;bones.shinR.rotation.z=-.55;}
     if(bones.upperarmL)bones.upperarmL.rotation.x=-.55;
     if(bones.upperarmR)bones.upperarmR.rotation.x=-.55;
     if(bones.forearmL)bones.forearmL.rotation.x=-.75;
@@ -1778,17 +1779,43 @@ function updateMonks(dt,elapsed){
       m.motion.update(dt,{speed:0,time:elapsed});
       if(b.head)b.head.rotation.y=Math.sin(elapsed*.4+m.seed)*.18;
     }else{
-      // 静坐：呼吸微动 + 偶尔抬头/合掌
-      m.actionTimer-=dt;
-      if(m.actionTimer<=0){m.actionTimer=6+Math.random()*6;if(Math.random()<.5)m.motion.greet();}
+      // 静坐：呼吸微动 + 不定时俯身拜佛（拜完回坐姿）
       m.motion.update(dt,{speed:0,time:elapsed});
-      // 静坐骨骼需要维持，已设的rotation被motion覆盖风险低，这里保底
-      if(b.hips)b.hips.position.y=.30+Math.sin(elapsed*1.2+m.seed)*.012;
+      // 盘腿基底（每帧维持，motion.reset 会覆盖）
+      if(b.hips)b.hips.position.y=.06+Math.sin(elapsed*1.2+m.seed)*.012;
       if(b.thighL)b.thighL.rotation.x=-1.15;
       if(b.thighR)b.thighR.rotation.x=-1.15;
-      if(b.shinL){b.shinL.rotation.x=-1.15;b.shinL.rotation.z=.55;}
-      if(b.shinR){b.shinR.rotation.x=-1.15;b.shinR.rotation.z=-.55;}
-      if(b.head)b.head.rotation.y=Math.sin(elapsed*.35+m.seed)*.14;
+      if(b.shinL){b.shinL.rotation.x=-.95;b.shinL.rotation.z=.55;}
+      if(b.shinR){b.shinR.rotation.x=-.95;b.shinR.rotation.z=-.55;}
+
+      if(m.bowing>0){
+        // 礼拜中：俯身 → 停留 → 起身（总约3.2秒）
+        m.bowing-=dt;
+        m.bowPhase+=dt;
+        var p3=m.bowPhase;
+        var bend=p3<.9?(p3/.9):(p3<2.1?1:Math.max(0,1-(p3-2.1)/1.1));
+        var easeBend=bend*bend*(3-2*bend);   // smoothstep
+        if(b.spine)b.spine.rotation.x=.06+easeBend*1.05;   // 上身俯向佛像
+        if(b.chest)b.chest.rotation.x=easeBend*.18;
+        if(b.head)b.head.rotation.x=easeBend*.12;
+        if(b.upperarmL)b.upperarmL.rotation.x=-.55-easeBend*.22;
+        if(b.upperarmR)b.upperarmR.rotation.x=-.55-easeBend*.22;
+        if(b.forearmL)b.forearmL.rotation.x=-.75-easeBend*.15;
+        if(b.forearmR)b.forearmR.rotation.x=-.75-easeBend*.15;
+        if(m.bowing<=0){m.bowPhase=0;m.bowTimer=9+Math.random()*16;}
+      }else{
+        // 平时：端坐，双臂合于腹前
+        m.bowTimer-=dt;
+        if(m.bowTimer<=0){m.bowing=3.2;m.bowPhase=0;}
+        if(b.spine)b.spine.rotation.x=.06;
+        if(b.chest)b.chest.rotation.x=0;
+        if(b.head)b.head.rotation.x=0;
+        if(b.head)b.head.rotation.y=Math.sin(elapsed*.35+m.seed)*.14;
+        if(b.upperarmL)b.upperarmL.rotation.x=-.55;
+        if(b.upperarmR)b.upperarmR.rotation.x=-.55;
+        if(b.forearmL)b.forearmL.rotation.x=-.75;
+        if(b.forearmR)b.forearmR.rotation.x=-.75;
+      }
     }
   });
 }
@@ -1932,7 +1959,7 @@ function tickFootsteps(dt,spd){
 window.QLY={scene,camera,renderer,player,getMonk:function(){return monkMotion},audio:function(){return templeAudio},
   key:function(k,v){if(v===undefined)return walkKeys.has(k);v?walkKeys.add(k):walkKeys.delete(k)},
   getStep:function(){return {acc:footstepAccum,alt:footstepAlt}},tickFoot:tickFootsteps,
-  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
+  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getStaticMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,bowTimer:+m.bowTimer.toFixed(1),bowing:+m.bowing.toFixed(2),spine:+m.bones.spine.rotation.x.toFixed(2),hips:+m.bones.hips.position.y.toFixed(2)}})},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
 function frame(now){
   const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;elapsed+=dt;
   let walking=false;const previousPosition=player.position.clone();
