@@ -1718,10 +1718,11 @@ function addMonk(o){
     if(bones.thighR)bones.thighR.rotation.x=-1.15;
     if(bones.shinL){bones.shinL.rotation.x=-.95;bones.shinL.rotation.z=.55;}
     if(bones.shinR){bones.shinR.rotation.x=-.95;bones.shinR.rotation.z=-.55;}
-    if(bones.upperarmL)bones.upperarmL.rotation.x=-.55;
-    if(bones.upperarmR)bones.upperarmR.rotation.x=-.55;
-    if(bones.forearmL)bones.forearmL.rotation.x=-.75;
-    if(bones.forearmR)bones.forearmR.rotation.x=-.75;
+    // 双手合十：上臂前摆内收、前臂竖起，双掌在胸前中线相合
+    if(bones.upperarmL)bones.upperarmL.rotation.set(.9,0,.9);
+    if(bones.upperarmR)bones.upperarmR.rotation.set(.9,0,-.9);
+    if(bones.forearmL)bones.forearmL.rotation.set(.9,0,.6);
+    if(bones.forearmR)bones.forearmR.rotation.set(.9,0,-.6);
     if(bones.spine)bones.spine.rotation.x=.06;
   }
   staticMonks.push(m);return m;
@@ -1799,11 +1800,11 @@ function updateMonks(dt,elapsed){
         if(b.spine)b.spine.rotation.x=.06-easeBend*1.0;
         if(b.chest)b.chest.rotation.x=-easeBend*.14;
         if(b.head)b.head.rotation.x=-easeBend*.08;
-        // 胳膊保持静坐合掌基准（-0.55/-0.75），只随上身俯下，不再额外翻转外张
-        if(b.upperarmL)b.upperarmL.rotation.x=-.55;
-        if(b.upperarmR)b.upperarmR.rotation.x=-.55;
-        if(b.forearmL)b.forearmL.rotation.x=-.75;
-        if(b.forearmR)b.forearmR.rotation.x=-.75;
+        // 双手合十随手上臂姿态，随俯身一起前送，不额外翻转外张
+        if(b.upperarmL)b.upperarmL.rotation.set(.9,0,.9);
+        if(b.upperarmR)b.upperarmR.rotation.set(.9,0,-.9);
+        if(b.forearmL)b.forearmL.rotation.set(.9,0,.6);
+        if(b.forearmR)b.forearmR.rotation.set(.9,0,-.6);
         if(m.bowing<=0){m.bowPhase=0;m.bowTimer=9+Math.random()*16;}
       }else{
         // 平时：端坐，双臂合于腹前
@@ -1813,10 +1814,11 @@ function updateMonks(dt,elapsed){
         if(b.chest)b.chest.rotation.x=0;
         if(b.head)b.head.rotation.x=0;
         if(b.head)b.head.rotation.y=Math.sin(elapsed*.35+m.seed)*.14;
-        if(b.upperarmL)b.upperarmL.rotation.x=-.55;
-        if(b.upperarmR)b.upperarmR.rotation.x=-.55;
-        if(b.forearmL)b.forearmL.rotation.x=-.75;
-        if(b.forearmR)b.forearmR.rotation.x=-.75;
+        // 双手合十：双手在胸前中线相合
+        if(b.upperarmL)b.upperarmL.rotation.set(.9,0,.9);
+        if(b.upperarmR)b.upperarmR.rotation.set(.9,0,-.9);
+        if(b.forearmL)b.forearmL.rotation.set(.9,0,.6);
+        if(b.forearmR)b.forearmR.rotation.set(.9,0,-.6);
       }
     }
   });
