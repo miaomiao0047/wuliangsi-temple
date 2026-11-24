@@ -366,12 +366,13 @@ function viewSize(){
   if(w<2||h<2){w=innerWidth;h=innerHeight;}
   return {w:Math.max(1,Math.round(w)),h:Math.max(1,Math.round(h))};
 }
-function doResize(){
+function doResize(force){
   var v=viewSize(),c=renderer.domElement;
+  if(!force&&c&&Math.abs(c.width-v.w)<=2&&Math.abs(c.height-v.h)<=2)return;
   camera.aspect=v.w/v.h;camera.updateProjectionMatrix();
   renderer.setSize(v.w,v.h,false);
-  // 显示尺寸交给 CSS(#world width/height:100%)，不写内联 px，避免覆盖容器自适应
   if(c){c.style.width='100%';c.style.height='100%';}
+  _lastSW=v.w;_lastSH=v.h;
 }
 renderer.setPixelRatio(IS_MOBILE?1:Math.min(devicePixelRatio,1.6));
 var _vs=viewSize();renderer.setSize(_vs.w,_vs.h,false);
@@ -2216,7 +2217,8 @@ function frame(now){
   updateMeditation(dt);
   // 每帧检查容器尺寸变化（兜底：覆盖所有旋转/地址栏/分屏场景，不依赖事件）
   var _sw=stageEl.clientWidth||innerWidth,_sh=stageEl.clientHeight||innerHeight;
-  if(_sw>1&&_sh>1&&(_sw!==_lastSW||_sh!==_lastSH)){_lastSW=_sw;_lastSH=_sh;doResize();}
+  // 只认宽度明显变化(横竖屏宽高互换)；高度小幅抖动是地址栏伸缩，忽略以免画面抖
+  if(_sw>1&&_sh>1&&Math.abs(_sw-_lastSW)>24){doResize();}
   var nowMs=performance.now();
   if(!IS_MOBILE||lastRenderMs===0||nowMs-lastRenderMs>=32){renderer.render(scene,camera);lastRenderMs=nowMs;}
   requestAnimationFrame(frame);
@@ -2422,17 +2424,17 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('keyup',e=>walkKeys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>walkKeys.clear());
 window.addEventListener('resize',doResize);
-window.addEventListener('orientationchange',()=>{setTimeout(doResize,80);setTimeout(doResize,250);setTimeout(doResize,600);});
+window.addEventListener('orientationchange',()=>{setTimeout(function(){doResize(true)},100);setTimeout(function(){doResize(true)},400);});
 if(window.screen&&screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',()=>setTimeout(doResize,150));
-if(window.visualViewport){visualViewport.addEventListener('resize',doResize);visualViewport.addEventListener('scroll',doResize);}
+if(window.visualViewport){visualViewport.addEventListener('resize',function(){if(Math.abs((stageEl.clientWidth||innerWidth)-_lastSW)>24)doResize();});}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)doResize();});
 // 最可靠：监听容器真实尺寸变化（旋转/地址栏/分屏都会触发）
-if(window.ResizeObserver){var _ro=new ResizeObserver(function(){doResize();});_ro.observe(stageEl);}
+if(window.ResizeObserver){var _ro=new ResizeObserver(function(){var w=stageEl.clientWidth||innerWidth;if(Math.abs(w-_lastSW)>24)doResize();});_ro.observe(stageEl);}
 // 定时轮询兜底：不依赖 rAF/事件，旋转后必定校正画布尺寸
 setInterval(function(){
   var w=stageEl.clientWidth||innerWidth,h=stageEl.clientHeight||innerHeight;
-  if(w>1&&h>1){var c=renderer.domElement;if(c.width!==Math.round(w)||c.height!==Math.round(h))doResize();}
-},300);
+  if(w>1&&h>1&&Math.abs(w-_lastSW)>24){doResize();}
+},400);
 $('reload-button').addEventListener('click',()=>location.reload());
 world.addEventListener('webglcontextlost',e=>{e.preventDefault();toast('画面正在休息，稍等片刻后可重新进入。');});
 
