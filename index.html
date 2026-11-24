@@ -346,7 +346,7 @@ const rand = (a, b) => a + random() * (b - a);
 const clamp = THREE.MathUtils.clamp;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scene = new THREE.Scene();
-const walkBounds = {x:26,z:24};
+const walkBounds = {x:26,z:32};  // 扩到门外，供访客在头道门外集结
 scene.background = new THREE.Color('#8fbfe6');
 scene.fog = new THREE.Fog('#b8d4ec', 70, 200);
 const camera = new THREE.PerspectiveCamera(53, innerWidth / innerHeight, .24, 215);
@@ -496,7 +496,7 @@ const ground = new THREE.Mesh(new THREE.CircleGeometry(95,72),mats.ground);groun
 box(35,.06,32,material('#bec0ab'),0,-.035,6);
 const tileColors = ['#8e958f','#9aa09a','#878e88','#959b95','#8b928c'];
 const tileMats=tileColors.map(c=>material(c,{map:stoneGrain}));
-for(let row=0;row<14;row++) {
+for(let row=0;row<19;row++) {  // 延长到头道门外，门外集结区铺石板
   const z = 1.8 + row * 1.56;
   for(let col=0;col<5;col++) {
     const x = (col - 2) * 1.85 + (row % 2 ? .13 : -.10);
@@ -516,6 +516,16 @@ const treeline=Array.from({length:74},(_,i)=>({angle:i/74*Math.PI*2,radius:rand(
 const courtyardTrees=[[-13,2.2,1.12],[-11.5,5.8,.95],[-16.2,-3,1.1],[10,20,1.3],[-30,14,1.05],[8,-22,.9],[18,-14,1.2],[-10.8,17,1.1],[22,15,1.3]];
 const gardenTrees=[[-17,-9,1.15],[16.7,-18.5,1.2],[23,-2,1],[-19,6,.9],[-17,18,1.25]];
 const maples=plantGrove(scene,{surfaceAt,treeline,walkBounds,courtyardTrees,gardenTrees});
+// 头道门外整片不放树：把门外可走区(z∈[19,32],|x|<28)的树实例缩放置零
+scene.traverse(function(o){
+  if(!o.isInstancedMesh||!o.instanceMatrix)return;
+  var arr=o.instanceMatrix.array,changed=false;
+  for(var i=0;i<o.count;i++){
+    var b=i*16,x=arr[b+12],z=arr[b+14];
+    if(Math.abs(x)<14 && z>19 && z<50){arr[b]=arr[b+5]=arr[b+10]=0;changed=true;}
+  }
+  if(changed)o.instanceMatrix.needsUpdate=true;
+});
 
 const temple = new THREE.Group();
 temple.position.z = HALL.centerZ;
@@ -1434,6 +1444,14 @@ var gateSignTex=canvasTexture(640,160,(ctx,w,h)=>{
 });
 var gateSign=new THREE.Mesh(new THREE.PlaneGeometry(3.4,.85),new THREE.MeshBasicMaterial({map:gateSignTex,side:THREE.DoubleSide}));
 gateSign.position.set(0,4.32,.62);gate.add(gateSign);
+// 门两侧院墙：藏式米白墙 + 绛红压顶，沿 z=22 延伸到场地边界，使门洞成为进院唯一通路
+var gateWall=material('#d8ccb4',{roughness:1});
+var gateWallCap=material('#8f3628',{roughness:.9});
+for(var wsg of [-1,1]){
+  var wlen=26-GATE_HALF, wcx=wsg*(GATE_HALF+wlen/2);
+  carvedBox(wlen,1.5,.5,gateWall,wcx,.9,0,gate,.06);
+  carvedBox(wlen,.16,.66,gateWallCap,wcx,1.72,0,gate,.04);
+}
 // 门下垂灯：一排暖色灯笼，呼应韩国版头道门
 for(var gi=-2;gi<=2;gi++)hangLantern(gi*1.5,3.9,GATE_Z+.15,(gi+5)%3);
 // 地面暖光补灯（夜间氛围）
@@ -1722,7 +1740,7 @@ for(let i=0;i<13;i++){const t=(i+.4)/13,lx=-11+t*22;if(Math.abs(lx)<4.2)continue
 for(let i=0;i<7;i++){var lx=-7.3+i*2.4;if(Math.abs(lx)<3.8)continue;lantern(lx,7.75+Math.cos(i)*.12,-.8,.4,i%2?'#e9d2b1':'#e9bca2');}
 
 // The character is a real rig. Walking, greeting and bows are posed locally.
-const player=new THREE.Group();player.position.set(0,.06,9.4);player.rotation.y=0;scene.add(player);
+const player=new THREE.Group();player.position.set(0,.06,28);player.rotation.y=0;scene.add(player);
 const avatar = createMonkAvatar();
 player.add(avatar);
 const monkMotion = new MonkMotion(avatar);
@@ -1777,10 +1795,10 @@ addMonk({x:0,y:HALL.floorY,z:HALL.centerZ+4.6,yaw:0,kind:'incense'});
 // 殿前香炉上香者
 addMonk({x:-1.2,y:0,z:6.2,yaw:0,kind:'incense'});
 // 庭院走动者：从头道门进院、院内活动、再出门（闭环），呼应韩国版进院动线
-addMonk({x:0,y:0,z:24,kind:'wander',yaw:0,
-  path:[{x:0,z:24},{x:0,z:22},{x:0,z:16},{x:-6,z:13},{x:0,z:16},{x:0,z:22},{x:0,z:24}]});
-addMonk({x:1.4,y:0,z:24,kind:'wander',yaw:0,
-  path:[{x:1.4,z:24},{x:1.4,z:22},{x:1.4,z:16},{x:9,z:14},{x:1.4,z:16},{x:1.4,z:22},{x:1.4,z:24}]});
+addMonk({x:0,y:0,z:28,kind:'wander',yaw:0,
+  path:[{x:0,z:28},{x:0,z:22},{x:0,z:16},{x:-6,z:13},{x:0,z:16},{x:0,z:22},{x:0,z:28}]});
+addMonk({x:1.4,y:0,z:29,kind:'wander',yaw:0,
+  path:[{x:1.4,z:29},{x:1.4,z:22},{x:1.4,z:16},{x:9,z:14},{x:1.4,z:16},{x:1.4,z:22},{x:1.4,z:29}]});
 
 function updateMonks(dt,elapsed){
   staticMonks.forEach(function(m){
@@ -1884,7 +1902,7 @@ function updatePracticeProps(){
 // Camera orbit and ground navigation work with both a pointer and touch.
 const templeView={yaw:0,pitch:1.34,distance:12.6};
 let {yaw,pitch,distance}=templeView;
-const cameraFocus=new THREE.Vector3(0,2.1,9.4),desiredFocus=cameraFocus.clone();
+const cameraFocus=new THREE.Vector3(0,2.1,28),desiredFocus=cameraFocus.clone();
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster(),groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-.04);
 const targetMarker=new THREE.Mesh(new THREE.RingGeometry(.18,.22,32),new THREE.MeshBasicMaterial({color:'#f6f2cc',transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));
 targetMarker.rotation.x=-Math.PI/2;targetMarker.visible=false;scene.add(targetMarker);
@@ -1943,8 +1961,8 @@ function canStand(x,z) {
   if(!hallWalkable(x,z))return false;
   // 听禅堂建筑占地：不可穿墙
   if(Math.abs(x-(-22))<3.9&&Math.abs(z-4)<3.2)return false;
-  // 头道门门柱：柱身不可穿，中间门洞(|x|<2.55)放行
-  if(Math.abs(z-GATE_Z)<.55 && Math.abs(Math.abs(x)-GATE_HALF)<.5)return false;
+  // 头道门院墙：z=22 除门洞(|x|<2.55)外全部封住，必须走门洞才能进院
+  if(Math.abs(z-GATE_Z)<.6 && Math.abs(x)>=2.55)return false;
   // 庭院树干：不可穿树（含我新增与原有）
   var treeSpots=[[-13,2.2],[-11.5,5.8],[-16.2,-3],[10,20],[-30,14],[8,-22],[18,-14],[-10.8,17],[22,15],
                  [-17,-9],[16.7,-18.5],[23,-2],[-19,6],[-17,18]];
@@ -1993,6 +2011,21 @@ function tickFootsteps(dt,spd){
     if(footstepAccum>=stepInterval){footstepAccum-=stepInterval;footstepAlt=!footstepAlt;if(effectsEnabled)templeAudio.footstep(footstepAlt);}
   }else{footstepAccum=0;}
 }
+// 二次清理：所有场景对象创建完毕后，确保门外可走区无树（含后加入的实例）
+(function(){
+  var seen=0;
+  scene.traverse(function(o){
+    if(!o.isInstancedMesh||!o.instanceMatrix)return;
+    var a=o.instanceMatrix.array,changed=false;
+    for(var i=0;i<o.count;i++){
+      var b=i*16,x=arr12(a,b),z=arr14(a,b);
+      if(Math.abs(x)<14&&z>19&&z<50&&a[b]>0.01){a[b]=a[b+5]=a[b+10]=0;changed=true;seen++;}
+    }
+    if(changed)o.instanceMatrix.needsUpdate=true;
+  });
+  function arr12(a,b){return a[b+12]}
+  function arr14(a,b){return a[b+14]}
+})();
 window.QLY={scene,camera,renderer,player,getMonk:function(){return monkMotion},audio:function(){return templeAudio},
   key:function(k,v){if(v===undefined)return walkKeys.has(k);v?walkKeys.add(k):walkKeys.delete(k)},
   getStep:function(){return {acc:footstepAccum,alt:footstepAlt}},tickFoot:tickFootsteps,
@@ -2094,7 +2127,7 @@ function closePopovers(){for(const id of ['places','visitor-popover'])$(id).hidd
 $('places-button').addEventListener('click',()=>{const show=$('places').hidden;closePopovers();$('places').hidden=!show;$('places-button').setAttribute('aria-expanded',String(show));});
 $('visitor-button').addEventListener('click',()=>{const show=$('visitor-popover').hidden;closePopovers();$('visitor-popover').hidden=!show;});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.popover,.location-bar'))closePopovers();});
-const places={temple:{name:'寺前广场',x:0,z:9.4,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'转经长廊',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},chan:{name:'听禅堂',x:-22,z:8,yaw:0,distance:8.5,pitch:1.25}};
+const places={temple:{name:'寺前广场',x:0,z:28,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'转经长廊',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},chan:{name:'听禅堂',x:-22,z:8,yaw:0,distance:8.5,pitch:1.25}};
 function goPlace(key){const p=places[key];stopMeditation(false);closePractice();action=null;updateBow(false);moveTarget=null;player.position.set(p.x,groundHeight(p.x,p.z),p.z);player.rotation.y=key==='pond'?-Math.PI/2:0;yaw=p.yaw;distance=p.distance;pitch=p.pitch;cameraFocus.copy(player.position).add(new THREE.Vector3(0,2.1,0));$('places-button').querySelector('.place-current').textContent=p.name;document.querySelectorAll('[data-place]').forEach(b=>b.classList.toggle('selected',b.dataset.place===key));closePopovers();targetMarker.visible=false;toast(p.name+' · 慢慢来，不必赶路。');}
 document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>goPlace(button.dataset.place)));
 $('home').addEventListener('click',()=>goPlace('temple'));
