@@ -2326,9 +2326,10 @@ let woodCount=storage.get('woodCount',0),beadsCount=storage.get('beadsCount',0),
 $('wood-count').textContent=woodCount;if($('wheel-count'))$('wheel-count').textContent=wheelCount;$('beads-count').textContent=beadsCount;
 for(let i=0;i<14;i++){const bead=document.createElement('span');bead.className='bead';bead.style.transform=`rotate(${i/14*360}deg) translateY(-66px)`;$('beads-turn').append(bead);}
 function stopAutoWood(){clearInterval(autoWoodTimer);autoWoodTimer=null;$('auto-wood').textContent='开启自动敲击';$('auto-wood').setAttribute('aria-pressed','false');}
-function closePractice(){practice=null;$('practice-panel').hidden=true;$('wood-button').setAttribute('aria-expanded','false');$('beads-button').setAttribute('aria-expanded','false');stopAutoWood();}
+function closePractice(){practice=null;$('practice-panel').hidden=true;$('beads-button').setAttribute('aria-expanded','false');stopAutoWood();}
 function openPractice(type){if(practice===type){closePractice();return;}stopMeditation(false);closePractice();practice=type;$('practice-panel').hidden=false;$('wood-practice').hidden=type!=='wood';$('beads-practice').hidden=type!=='beads';$(type+'-button').setAttribute('aria-expanded','true');}
-// 转经筒按钮已移除$('beads-button').addEventListener('click',()=>openPractice('beads'));$('practice-close').addEventListener('click',closePractice);
+// 转经筒按钮已移除
+$('beads-button').addEventListener('click',()=>openPractice('beads'));$('practice-close').addEventListener('click',closePractice);
 // 拨动转经筒：角色动作 + 经筒加速旋转 + 转经音效 + 计数
 function spinWheel(){
   bumpCount('wheel');
@@ -2394,7 +2395,7 @@ document.addEventListener('keydown',e=>{
   const key=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)){e.preventDefault();walkKeys.add(key);}
   if(e.repeat)return;
   if(key==='1')greet();if(key==='2')bow();if(key==='4')openPractice('beads');if(key==='5')offerIncense();if(key==='6')toggleHeadphone();if(key==='7')playChanTalk();if(key==='8')nextChanEp();
-  if(key===' '&&practice==='wood'&&(!e.target.closest('button')||e.target===$('wood-button')||e.target===$('wood-hit'))){e.preventDefault();hitWood();}
+  if(key===' '&&practice==='wood'&&(!e.target.closest('button')||e.target===$('wood-hit'))){e.preventDefault();hitWood();}
   if(key==='escape'){closePractice();closePopovers();stopMeditation();}
 });
 document.addEventListener('keyup',e=>walkKeys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>walkKeys.clear());
