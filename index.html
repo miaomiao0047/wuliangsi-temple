@@ -178,7 +178,8 @@ Required attribution is included in the website's audio settings and in this sou
         <button type="button" class="map-pin" data-place="temple" style="left:50%;top:88%" aria-label="寺前广场">寺前</button>
         <button type="button" class="map-pin" data-place="hall" style="left:50%;top:20%" aria-label="大雄宝殿">大殿</button>
         <button type="button" class="map-pin" data-place="pond" style="left:76%;top:68%" aria-label="放生池">放生池</button>
-        <button type="button" class="map-pin" data-place="pavilion" style="left:58%;top:68%" aria-label="般若亭">般若亭</button>
+        <button type="button" class="map-pin" data-place="pavilion" style="left:58%;top:68%" aria-label="转经长廊">转经廊</button>
+        <button type="button" class="map-pin" data-place="banruo" style="left:70%;top:28%" aria-label="般若亭">般若亭</button>
         <button type="button" class="map-pin" data-place="chan" style="left:18%;top:66%" aria-label="听禅堂">听禅堂</button>
       </div>
       <p class="popover-foot">点图上的标记，直达各处。</p>
@@ -2239,7 +2240,7 @@ function closePopovers(){for(const id of ['places','visitor-popover'])$(id).hidd
 $('places-button').addEventListener('click',()=>{const show=$('places').hidden;closePopovers();$('places').hidden=!show;$('places-button').setAttribute('aria-expanded',String(show));});
 $('visitor-button').addEventListener('click',()=>{const show=$('visitor-popover').hidden;closePopovers();$('visitor-popover').hidden=!show;});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.popover,.location-bar'))closePopovers();});
-const places={temple:{name:'寺前广场',x:0,z:28,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'般若亭',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},chan:{name:'听禅堂',x:-22,z:5.2,yaw:0,distance:7,pitch:1.25}};
+const places={temple:{name:'寺前广场',x:0,z:28,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'转经长廊',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},banruo:{name:'般若亭',x:17,z:-6.4,yaw:Math.PI/2,distance:6,pitch:1.22},chan:{name:'听禅堂',x:-22,z:5.2,yaw:0,distance:7,pitch:1.25}};
 function goPlace(key){const p=places[key];stopMeditation(false);closePractice();action=null;updateBow(false);moveTarget=null;player.position.set(p.x,groundHeight(p.x,p.z),p.z);player.rotation.y=key==='pond'?-Math.PI/2:0;yaw=p.yaw;distance=p.distance;pitch=p.pitch;cameraFocus.copy(player.position).add(new THREE.Vector3(0,2.1,0));$('places-button').querySelector('.place-current').textContent=p.name;document.querySelectorAll('[data-place]').forEach(b=>b.classList.toggle('selected',b.dataset.place===key));closePopovers();targetMarker.visible=false;toast(p.name+' · 慢慢来，不必赶路。');}
 document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>goPlace(button.dataset.place)));
 $('home').addEventListener('click',()=>goPlace('temple'));
