@@ -2094,7 +2094,7 @@ function frame(now){
 }
 
 // Audio starts with an explicit click; soundscape preference survives reloads.
-let soundEnabled=false,userMuted=false,ambientEnabled=storage.get('ambientEnabled',false),effectsEnabled=storage.get('effectsEnabled',true);
+let soundEnabled=storage.get('soundOn',true),userMuted=!soundEnabled,ambientEnabled=storage.get('ambientEnabled',true),effectsEnabled=storage.get('effectsEnabled',true);
 let soundMode=storage.get('soundMode','wind')==='chant'?'chant':'wind';
 let ambientVolume=storage.get('ambientVolume',35),effectsVolume=storage.get('effectsVolume',50);
 let windVolume=storage.get('windVolume',12),bellVolume=storage.get('bellVolume',85);
@@ -2255,7 +2255,7 @@ const savedWish=storage.get('wish','');
 if(savedWish){$('saved-wish').hidden=false;$('saved-wish-text').textContent=savedWish;}
 $('wish-input').addEventListener('input',()=>{$('wish-length').textContent=$('wish-input').value.length+' / 60';});
 $('wish-form').addEventListener('submit',e=>{e.preventDefault();const wish=$('wish-input').value.trim();if(!wish){$('wish-input').focus();return;}storage.set('wish',wish);$('saved-wish').hidden=false;$('saved-wish-text').textContent=wish;$('wish-input').value='';$('wish-length').textContent='0 / 60';closeDialog($('wish-dialog'));toast('心灯已留。愿你所念，平安顺遂。');bell();});
-$('sound-button').addEventListener('click',()=>{soundEnabled=!soundEnabled;userMuted=!soundEnabled;if(soundEnabled){ambientEnabled=true;$('ambient-toggle').checked=true;}syncAudio();if(soundEnabled)ensureAudio();toast(soundEnabled?(soundMode==='chant'?'梵音已开启 · 静静听一会儿。':'声音已开启 · 听听低沉梵音与风铃。'):'声音已关闭');});
+$('sound-button').addEventListener('click',()=>{soundEnabled=!soundEnabled;userMuted=!soundEnabled;storage.set('soundOn',soundEnabled);if(soundEnabled){ambientEnabled=true;storage.set('ambientEnabled',true);$('ambient-toggle').checked=true;}syncAudio();if(soundEnabled)ensureAudio();toast(soundEnabled?(soundMode==='chant'?'梵音已开启 · 静静听一会儿。':'声音已开启 · 听听低沉梵音与风铃。'):'声音已关闭');});
 document.querySelectorAll('[data-sound-mode]').forEach(button=>button.addEventListener('click',()=>chooseSoundMode(button.dataset.soundMode)));
 $('ambient-toggle').checked=ambientEnabled;$('effects-toggle').checked=effectsEnabled;$('ambient-volume').value=ambientVolume;$('effects-volume').value=effectsVolume;$('ambient-output').textContent=ambientVolume+'%';$('effects-output').textContent=effectsVolume+'%';
 $('ambient-toggle').addEventListener('change',e=>{ambientEnabled=e.target.checked;if(ambientEnabled){soundEnabled=true;userMuted=false;}storage.set('ambientEnabled',ambientEnabled);syncAudio();if(ambientEnabled)ensureAudio();});
@@ -2295,6 +2295,11 @@ $('reload-button').addEventListener('click',()=>location.reload());
 world.addEventListener('webglcontextlost',e=>{e.preventDefault();toast('画面正在休息，稍等片刻后可重新进入。');});
 
 paintCounts();syncAudio();
+// 声音默认开启：浏览器自动播放策略要求先有用户交互，首次点击/触摸/按键即激活音频
+if(soundEnabled){
+  var activateSoundOnce=function(){ensureAudio();['pointerdown','touchstart','keydown'].forEach(function(ev){document.removeEventListener(ev,activateSoundOnce,true)});};
+  ['pointerdown','touchstart','keydown'].forEach(function(ev){document.addEventListener(ev,activateSoundOnce,true)});
+}
 requestAnimationFrame(frame);
 appReady=true;world.dataset.state='ready';$('loading-progress').style.width='100%';$('loading-status').textContent='寺门已开，慢慢走来';
 setTimeout(()=>{$('loading-screen').classList.add('done');setTimeout(()=>$('scene-intro').classList.add('fade'),6500);},350);
