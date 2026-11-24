@@ -150,10 +150,9 @@ Required attribution is included in the website's audio settings and in this sou
     <nav class="glass action-dock" aria-label="静心小事">
       <button id="greet-button" aria-label="合掌行礼" title="合掌行礼 · 1"><svg><use href="#i-palms"/></svg><span>合掌行礼</span><i class="cnt" id="cnt-greet">0</i><kbd>1</kbd></button>
       <button id="bow-button" aria-label="跪拜" aria-pressed="false" title="跪拜 · 2"><svg><use href="#i-bow"/></svg><span>跪拜</span><i class="cnt" id="cnt-bow">0</i><kbd>2</kbd></button>
-      <button id="wood-button" aria-label="拨动转经筒" aria-expanded="false" title="转经筒 · 3"><svg><use href="#i-wood"/></svg><span>转经筒</span><i class="cnt" id="cnt-wheel">0</i><kbd>3</kbd></button>
       <button id="beads-button" aria-label="捻佛珠" aria-expanded="false" title="佛珠 · 4"><svg><use href="#i-beads"/></svg><span>佛珠</span><i class="cnt" id="cnt-beads">0</i><kbd>4</kbd></button>
       <button id="incense-button" aria-label="上香" title="上香 · 5"><svg><use href="#i-incense"/></svg><span>上香</span><i class="cnt" id="cnt-incense">0</i><kbd>5</kbd></button>
-      <button id="tea-button" class="locked" aria-label="茶歇（礼拜25次解锁）" title="茶歇 · 礼拜25次解锁"><svg><use href="#i-incense"/></svg><span>茶歇</span><kbd>6</kbd></button>
+      <button id="sutra-button" aria-label="听心经" title="听心经 · 6（须在般若亭戴耳机）"><svg><use href="#i-lotus"/></svg><span>听心经</span><kbd>6</kbd></button>
       <button id="chan-button" aria-label="听禅" title="听禅 · 7"><svg><use href="#i-wind"/></svg><span>听禅</span><kbd>7</kbd></button>
     </nav>
     <button class="help-button glass" id="help-button" aria-label="操作说明">?</button>
@@ -179,7 +178,7 @@ Required attribution is included in the website's audio settings and in this sou
         <button type="button" class="map-pin" data-place="temple" style="left:50%;top:88%" aria-label="寺前广场">寺前</button>
         <button type="button" class="map-pin" data-place="hall" style="left:50%;top:20%" aria-label="大雄宝殿">大殿</button>
         <button type="button" class="map-pin" data-place="pond" style="left:76%;top:68%" aria-label="放生池">放生池</button>
-        <button type="button" class="map-pin" data-place="pavilion" style="left:58%;top:68%" aria-label="转经长廊">转经廊</button>
+        <button type="button" class="map-pin" data-place="pavilion" style="left:58%;top:68%" aria-label="般若亭">般若亭</button>
         <button type="button" class="map-pin" data-place="chan" style="left:18%;top:66%" aria-label="听禅堂">听禅堂</button>
       </div>
       <p class="popover-foot">点图上的标记，直达各处。</p>
@@ -1147,7 +1146,28 @@ for (const x of [-3.405,3.405]) for (const z of [-1.98,-.66,.66,1.98]){
 for (const x of [-2.83,-1.72,1.72,2.83]){
   carvedBox(1.04,.39,.06,tileMats[2],x,.296,2.704,pavilion,.018);
 }
-const pavilionFloor=carvedBox(6.9,.14,5.5,mats.woodLight,0,.68,0,pavilion,.025);
+// 三副听经耳机（挂在凉亭柱旁）：点击戴上，听般若波罗蜜多心经
+makeText('般 若 亭',2.4,'#f3d979',function(tex){
+  var sign=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.38),new THREE.MeshBasicMaterial({map:tex,transparent:true}));
+  sign.position.set(0,3.3,2.72);pavilion.add(sign);
+});
+var headphoneHits=[],headphoneOn=false;
+(function(){
+  var spots=[[-2.6,-1.6],[0,-1.9],[2.6,-1.6]];
+  spots.forEach(function(sp,i){
+    var g=new THREE.Group();g.position.set(sp[0],1.42,sp[1]);pavilion.add(g);
+    var band=new THREE.Mesh(new THREE.TorusGeometry(.17,.028,8,18,Math.PI),mats.woodDark);
+    band.rotation.z=Math.PI;band.position.y=.06;g.add(band);
+    for(var s of [-1,1]){
+      var cup=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.055,14),mats.gold||mats.woodDark);
+      cup.rotation.z=Math.PI/2;cup.position.set(s*.17,-.04,0);cup.userData.headphone=true;g.add(cup);
+      headphoneHits.push(cup);
+    }
+    var wire=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.5,6),mats.woodDark);
+    wire.position.set(0,-.32,0);g.add(wire);
+  });
+})();
+var pavilionFloor=carvedBox(6.9,.14,5.5,mats.woodLight,0,.68,0,pavilion,.025);
 walkSurfaces.push(pavilionFloor);
 for(let i=0;i<18;i++){
   box(.365,.018,5.31,plankMats[i%plankMats.length],(i-8.5)*.377,.753,0,pavilion).castShadow=false;
@@ -1747,6 +1767,20 @@ function nextChanEp(){
   if(chanPlaying){chanAudio.pause();chanPlaying=false}
   playChanTalk();toast('已解锁第'+chanEp+'集 · '+chanStatus());
 }
+// ===== 凉亭听经：戴耳机听般若波罗蜜多心经 =====
+var sutraAudio=null,sutraPlaying=false;
+function inPavilion(){
+  var px=player.position.x-17,pz=player.position.z-(-7.5);
+  var side=Math.cos(.12)*px+Math.sin(.12)*pz,along=Math.cos(.12)*pz-Math.sin(.12)*px;
+  return Math.abs(side)<3.45&&Math.abs(along)<2.75;
+}
+function toggleHeadphone(){
+  if(!inPavilion()){toast('请在般若亭内戴耳机听经。');return}
+  if(!sutraAudio){sutraAudio=new Audio('./assets/audio/heart-sutra.m4a');sutraAudio.volume=.85}
+  if(sutraPlaying){sutraAudio.pause();sutraPlaying=false;headphoneOn=false;toast('已摘下耳机。');return}
+  sutraAudio.play().then(function(){sutraPlaying=true;headphoneOn=true;toast('戴上耳机 · 般若波罗蜜多心经')})
+    .catch(function(){toast('心经音频未找到。')});
+}
 
 batchStaticMeshes(scene,new Set(walkSurfaces));
 const fallen=new THREE.InstancedMesh(leafGeo,mats.leaf,360);
@@ -1989,6 +2023,9 @@ world.addEventListener('pointermove',e=>{
 function endPointer(e){
   if(pointers.size===1&&gesture&&gesture.moved<7&&!meditationActive){
     pointer.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);
+    // 优先：点到凉亭耳机则听经
+    const hp=raycaster.intersectObjects(headphoneHits,false);
+    if(hp.length){toggleHeadphone();return;}
     // 优先：点到经筒则转动它
     const wheelHits=raycaster.intersectObjects(wheelSpinners,true);
     if(wheelHits.length){
@@ -2101,7 +2138,7 @@ function tickFootsteps(dt,spd){
 window.QLY={scene,camera,renderer,player,getMonk:function(){return monkMotion},audio:function(){return templeAudio},
   key:function(k,v){if(v===undefined)return walkKeys.has(k);v?walkKeys.add(k):walkKeys.delete(k)},
   getStep:function(){return {acc:footstepAccum,alt:footstepAlt}},tickFoot:tickFootsteps,
-  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getChan:function(){return JSON.parse(JSON.stringify(chanProg))},chanState:function(){return {playing:chanPlaying,ep:chanEp,inHall:inChanHall()}},chanTestPlay:function(){chanPlaying=true},nextChan:nextChanEp,getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getStaticMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,bowTimer:+m.bowTimer.toFixed(1),bowing:+m.bowing.toFixed(2),spine:+m.bones.spine.rotation.x.toFixed(2),hips:+m.bones.hips.position.y.toFixed(2)}})},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
+  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getChan:function(){return JSON.parse(JSON.stringify(chanProg))},chanState:function(){return {playing:chanPlaying,ep:chanEp,inHall:inChanHall()}},sutraState:function(){return {playing:sutraPlaying,inPavilion:inPavilion()}},testSutra:function(){sutraPlaying=true},chanTestPlay:function(){chanPlaying=true},nextChan:nextChanEp,getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getStaticMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,bowTimer:+m.bowTimer.toFixed(1),bowing:+m.bowing.toFixed(2),spine:+m.bones.spine.rotation.x.toFixed(2),hips:+m.bones.hips.position.y.toFixed(2)}})},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
 function frame(now){
   const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;elapsed+=dt;
   let walking=false;const previousPosition=player.position.clone();
@@ -2117,6 +2154,7 @@ function frame(now){
   player.position.y=THREE.MathUtils.lerp(player.position.y,groundHeight(player.position.x,player.position.z),Math.min(1,dt*10));
   // 离开听禅堂自动停止音频
   if(chanPlaying&&!inChanHall()){chanAudio.pause();chanPlaying=false;toast('已离开听禅堂 · 音频停止。');}
+  if(sutraPlaying&&!inPavilion()){sutraAudio.pause();sutraPlaying=false;headphoneOn=false;toast('已离开凉亭 · 心经停止。');}
   const speed=Math.hypot(player.position.x-previousPosition.x,player.position.z-previousPosition.z)/Math.max(dt,.001);speedNow=speed;
   if(monkMotion)monkMotion.update(dt,{speed,action,practice,time:elapsed});
   tickFootsteps(dt,speed);
@@ -2201,7 +2239,7 @@ function closePopovers(){for(const id of ['places','visitor-popover'])$(id).hidd
 $('places-button').addEventListener('click',()=>{const show=$('places').hidden;closePopovers();$('places').hidden=!show;$('places-button').setAttribute('aria-expanded',String(show));});
 $('visitor-button').addEventListener('click',()=>{const show=$('visitor-popover').hidden;closePopovers();$('visitor-popover').hidden=!show;});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.popover,.location-bar'))closePopovers();});
-const places={temple:{name:'寺前广场',x:0,z:28,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'转经长廊',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},chan:{name:'听禅堂',x:-22,z:5.2,yaw:0,distance:7,pitch:1.25}};
+const places={temple:{name:'寺前广场',x:0,z:28,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'般若亭',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},chan:{name:'听禅堂',x:-22,z:5.2,yaw:0,distance:7,pitch:1.25}};
 function goPlace(key){const p=places[key];stopMeditation(false);closePractice();action=null;updateBow(false);moveTarget=null;player.position.set(p.x,groundHeight(p.x,p.z),p.z);player.rotation.y=key==='pond'?-Math.PI/2:0;yaw=p.yaw;distance=p.distance;pitch=p.pitch;cameraFocus.copy(player.position).add(new THREE.Vector3(0,2.1,0));$('places-button').querySelector('.place-current').textContent=p.name;document.querySelectorAll('[data-place]').forEach(b=>b.classList.toggle('selected',b.dataset.place===key));closePopovers();targetMarker.visible=false;toast(p.name+' · 慢慢来，不必赶路。');}
 document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>goPlace(button.dataset.place)));
 $('home').addEventListener('click',()=>goPlace('temple'));
@@ -2271,8 +2309,9 @@ $('tea-send').addEventListener('click',function(){
   closeTeaDialog();
 });
 document.querySelector('[data-close-tea]').addEventListener('click',closeTeaDialog);
-$('tea-button').addEventListener('click',openTeaDialog);
+// 茶歇按钮已移除
 $('chan-button').addEventListener('click',function(e){if(e.shiftKey)nextChanEp();else playChanTalk()});
+$('sutra-button')?.addEventListener('click',toggleHeadphone);
 
 $('incense-button').addEventListener('click',offerIncense);
 $('time-button').addEventListener('click',function(){applyTime(timeIndex+1)});
@@ -2288,7 +2327,7 @@ for(let i=0;i<14;i++){const bead=document.createElement('span');bead.className='
 function stopAutoWood(){clearInterval(autoWoodTimer);autoWoodTimer=null;$('auto-wood').textContent='开启自动敲击';$('auto-wood').setAttribute('aria-pressed','false');}
 function closePractice(){practice=null;$('practice-panel').hidden=true;$('wood-button').setAttribute('aria-expanded','false');$('beads-button').setAttribute('aria-expanded','false');stopAutoWood();}
 function openPractice(type){if(practice===type){closePractice();return;}stopMeditation(false);closePractice();practice=type;$('practice-panel').hidden=false;$('wood-practice').hidden=type!=='wood';$('beads-practice').hidden=type!=='beads';$(type+'-button').setAttribute('aria-expanded','true');}
-$('wood-button').addEventListener('click',()=>{openPractice('wood');spinWheel();});$('beads-button').addEventListener('click',()=>openPractice('beads'));$('practice-close').addEventListener('click',closePractice);
+// 转经筒按钮已移除$('beads-button').addEventListener('click',()=>openPractice('beads'));$('practice-close').addEventListener('click',closePractice);
 // 拨动转经筒：角色动作 + 经筒加速旋转 + 转经音效 + 计数
 function spinWheel(){
   bumpCount('wheel');
@@ -2353,7 +2392,7 @@ document.addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea,select')||document.querySelector('dialog[open]'))return;
   const key=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)){e.preventDefault();walkKeys.add(key);}
   if(e.repeat)return;
-  if(key==='1')greet();if(key==='2')bow();if(key==='3')openPractice('wood');if(key==='4')openPractice('beads');if(key==='5')offerIncense();if(key==='6')openTeaDialog();if(key==='7')playChanTalk();if(key==='8')nextChanEp();
+  if(key==='1')greet();if(key==='2')bow();if(key==='4')openPractice('beads');if(key==='5')offerIncense();if(key==='6')toggleHeadphone();if(key==='7')playChanTalk();if(key==='8')nextChanEp();
   if(key===' '&&practice==='wood'&&(!e.target.closest('button')||e.target===$('wood-button')||e.target===$('wood-hit'))){e.preventDefault();hitWood();}
   if(key==='escape'){closePractice();closePopovers();stopMeditation();}
 });
