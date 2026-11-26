@@ -135,6 +135,7 @@ Required attribution is included in the website's audio settings and in this sou
           <button class="icon-button incense-button" id="wish-button" aria-label="许个心愿" title="许个心愿"><svg><use href="#i-incense"/></svg></button>
           <button class="icon-button" id="time-button" aria-label="切换时段" title="切换时段：晨/暮/夜"><svg><use href="#i-wind"/></svg></button>
           <button class="icon-button" id="sound-button" aria-label="开启声音" aria-pressed="false" title="开启声音"><svg><use href="#i-sound-off"/></svg></button>
+          <button class="icon-button" id="landscape-button" aria-label="切换横屏" title="切换横屏"><svg><use href="#i-landscape"/></svg></button>
           <button class="icon-button" id="fullscreen-button" aria-label="切换全屏" title="切换全屏"><svg><use href="#i-fullscreen"/></svg></button>
           <button class="icon-button" id="settings-button" aria-label="打开设置" title="设置"><svg><use href="#i-settings"/></svg></button>
         </div>
@@ -259,7 +260,7 @@ Required attribution is included in the website's audio settings and in this sou
     <symbol id="i-incense" viewBox="0 0 24 24"><path d="M12 17V9M6 17h12l-1.5 4h-9L6 17ZM12 6c-4-2 4-3 0-6"/></symbol>
     <symbol id="i-sound-off" viewBox="0 0 24 24"><path d="m10 5-5 4H2v6h3l5 4V5Zm6 4 5 6m0-6-5 6"/></symbol>
     <symbol id="i-sound" viewBox="0 0 24 24"><path d="m10 5-5 4H2v6h3l5 4V5Zm5 3c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/></symbol>
-    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M3 7h18M3 17h18"/><circle cx="9" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></symbol><symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M3 7h18M3 17h18"/><circle cx="9" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></symbol><symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol><symbol id="i-landscape" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M9 12h6m-2.5-2.5L15 12l-2.5 2.5"/></symbol>
     <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 8h11a3 3 0 1 0-3-3M2 12h17a3 3 0 1 1-3 3M4 16h5a3 3 0 1 1-3 3"/></symbol>
     <symbol id="i-palms" viewBox="0 0 24 24"><path d="m12 19-4 2-4-6 3-4 3-7a1.2 1.2 0 0 1 2 .5V19Zm0 0 4 2 4-6-3-4-3-7a1.2 1.2 0 0 0-2 .5"/></symbol>
     <symbol id="i-bow" viewBox="0 0 24 24"><path d="M6.8 12.4C3.9 12.9 2.5 15 2.5 18v2.5H8m9.2-8.1c2.9.5 4.3 2.6 4.3 5.6v2.5H16M6.7 8.8c0-3.2 2.1-5.3 5.3-5.3s5.3 2.1 5.3 5.3c0 3.5-2.5 6.4-5.3 8-2.8-1.6-5.3-4.5-5.3-8Zm-2.2 8.2h3v3.5m12-3.5h-3v3.5"/></symbol>
@@ -2623,6 +2624,29 @@ function toggleFullscreen(){
   }catch(err){}
 }
 if(fsBtn)fsBtn.addEventListener('click',toggleFullscreen);
+// ===== 横屏：移动端锁定横屏显示，再点解锁 =====
+var lsBtn=$('landscape-button');
+function isLandscape(){return (screen.orientation&&screen.orientation.type&&screen.orientation.type.indexOf('landscape')>=0)||innerWidth>innerHeight}
+function syncLsBtn(){if(lsBtn)lsBtn.setAttribute('aria-pressed',isLandscape()?'true':'false')}
+function toggleLandscape(){
+  var so=screen.orientation;
+  var want=isLandscape()?'portrait':'landscape';
+  if(so&&so.lock){
+    try{
+      var p=so.lock(want);
+      if(p&&p.catch)p.catch(function(){
+        toast(want==='landscape'?'请旋转手机到横屏':'请旋转手机到竖屏');
+      });
+    }catch(err){toast('请手动旋转手机到'+(want==='landscape'?'横屏':'竖屏'))}
+  }else{
+    toast('当前浏览器不支持自动锁定，请手动旋转手机到'+(want==='landscape'?'横屏':'竖屏'));
+  }
+}
+if(lsBtn)lsBtn.addEventListener('click',toggleLandscape);
+screen.orientation?.addEventListener?.('change',syncLsBtn);
+window.addEventListener('resize',syncLsBtn);
+syncLsBtn();
+
 document.addEventListener('fullscreenchange',syncFsBtn);
 document.addEventListener('webkitfullscreenchange',syncFsBtn);
 syncFsBtn();
