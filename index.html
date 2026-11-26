@@ -1771,7 +1771,11 @@ function playChanTalk(){
   chanEp=Math.min(chanProg.unlocked,Math.max(1,chanEp));
   var src='./assets/audio/chan/'+String(chanEp).padStart(2,'0')+'.mp3';
   chanAudio.src=src;chanAudio.loop=false;
-  chanAudio.play().then(function(){chanPlaying=true;toast('听禅 · <b>第'+chanEp+'集</b> · '+chanStatus()+' · 按8听下一集')})
+  // 第一集跳过开头自我介绍与"从今天开始"(原文在 0:09~0:20)，从 21.5 秒正式内容开始
+  chanAudio.play().then(function(){
+    if(chanEp===1){try{chanAudio.currentTime=21.5}catch(e){}}
+    chanPlaying=true;toast('听禅 · <b>第'+chanEp+'集</b> · '+chanStatus()+' · 按8听下一集')
+  })
     .catch(function(){toast('第'+chanEp+'集音频未找到。')});
 }
 function nextChanEp(){
