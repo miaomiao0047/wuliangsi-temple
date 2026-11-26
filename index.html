@@ -2016,9 +2016,10 @@ function updatePracticeProps(){
 }
 
 // Camera orbit and ground navigation work with both a pointer and touch.
-const templeView={yaw:0,pitch:1.34,distance:7.0};
+const FOCUS_H=2.5;
+const templeView={yaw:0,pitch:1.52,distance:7.0};
 let {yaw,pitch,distance}=templeView;
-const cameraFocus=new THREE.Vector3(0,2.1,28),desiredFocus=cameraFocus.clone();
+const cameraFocus=new THREE.Vector3(0,FOCUS_H,28),desiredFocus=cameraFocus.clone();
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster(),groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-.04);
 const targetMarker=new THREE.Mesh(new THREE.RingGeometry(.18,.22,32),new THREE.MeshBasicMaterial({color:'#f6f2cc',transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));
 targetMarker.rotation.x=-Math.PI/2;targetMarker.visible=false;scene.add(targetMarker);
@@ -2153,7 +2154,7 @@ function tickFootsteps(dt,spd){
 window.QLY={scene,camera,renderer,player,getMonk:function(){return monkMotion},audio:function(){return templeAudio},
   key:function(k,v){if(v===undefined)return walkKeys.has(k);v?walkKeys.add(k):walkKeys.delete(k)},
   getStep:function(){return {acc:footstepAccum,alt:footstepAlt}},tickFoot:tickFootsteps,
-  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getChan:function(){return JSON.parse(JSON.stringify(chanProg))},chanState:function(){return {playing:chanPlaying,ep:chanEp,inHall:inChanHall()}},sutraState:function(){return {playing:sutraPlaying,inPavilion:inPavilion()}},testSutra:function(){sutraPlaying=true},chanTestPlay:function(){chanPlaying=true},nextChan:nextChanEp,getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getStaticMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,bowTimer:+m.bowTimer.toFixed(1),bowing:+m.bowing.toFixed(2),spine:+m.bones.spine.rotation.x.toFixed(2),hips:+m.bones.hips.position.y.toFixed(2)}})},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
+  getSpeed:function(){return speedNow||0},setDist:function(v){distance=v},getDist:function(){return distance},setPitch:function(v){pitch=v},getPitch:function(){return pitch},setFocusH:function(v){cameraFocus.y=player.position.y+v},teleport:function(x,z){player.position.set(x,groundHeight(x,z),z)},getChan:function(){return JSON.parse(JSON.stringify(chanProg))},chanState:function(){return {playing:chanPlaying,ep:chanEp,inHall:inChanHall()}},sutraState:function(){return {playing:sutraPlaying,inPavilion:inPavilion()}},testSutra:function(){sutraPlaying=true},chanTestPlay:function(){chanPlaying=true},nextChan:nextChanEp,getWheelBoost:function(){return wheelSpinBoost.slice()},testWheelHit:function(x,y){pointer.set(x/innerWidth*2-1,-y/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);var h=raycaster.intersectObjects(wheelSpinners,true);var d=raycaster.intersectObject(donation,true);var w=raycaster.intersectObjects(wishLanterns,true);return {wheels:h.length,donation:d.length,wish:w.length}},getWish:function(){return wishRecords},openWish:function(i){openLanternDialog(i)},openTea:function(){openTeaDialog()},getCounts:function(){return practiceCount},canStand:function(x,z){return canStand(x,z)},getStaticMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,bowTimer:+m.bowTimer.toFixed(1),bowing:+m.bowing.toFixed(2),spine:+m.bones.spine.rotation.x.toFixed(2),hips:+m.bones.hips.position.y.toFixed(2)}})},getMonks:function(){return staticMonks.map(function(m){return {kind:m.kind,yaw:+m.group.rotation.y.toFixed(2),x:+m.group.position.x.toFixed(2),z:+m.group.position.z.toFixed(2),phase:+m.motion.phase.toFixed(2)}})}};
 var lastRenderMs=0,_lastSW=0,_lastSH=0;
 function frame(now){
   const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;elapsed+=dt;
@@ -2183,7 +2184,7 @@ function frame(now){
   updateSmoke(dt);
   updatePracticeProps();
   if(action==='greet'&&elapsed-actionStart>3.4)action=null;
-  desiredFocus.copy(player.position).add(new THREE.Vector3(0,2.1,0));cameraFocus.lerp(desiredFocus,1-Math.exp(-dt*5));
+  desiredFocus.copy(player.position).add(new THREE.Vector3(0,FOCUS_H,0));cameraFocus.lerp(desiredFocus,1-Math.exp(-dt*5));
   camera.position.set(cameraFocus.x+Math.sin(yaw)*Math.sin(pitch)*distance,cameraFocus.y+Math.cos(pitch)*distance,cameraFocus.z+Math.cos(yaw)*Math.sin(pitch)*distance);camera.lookAt(cameraFocus);
   const labelPosition=monkMotion?monkMotion.bones.head.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,.65,0)):new THREE.Vector3(player.position.x,player.position.y+1.94,player.position.z);
   const projected=labelPosition.project(camera);
@@ -2263,7 +2264,7 @@ $('places-button').addEventListener('click',()=>{const show=$('places').hidden;c
 $('visitor-button').addEventListener('click',()=>{const show=$('visitor-popover').hidden;closePopovers();$('visitor-popover').hidden=!show;});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.popover,.location-bar'))closePopovers();});
 const places={temple:{name:'寺前广场',x:0,z:28,...templeView},hall:{name:'大雄宝殿',x:0,z:-3.4,yaw:0,distance:6.5,pitch:1.34},pond:{name:'放生池',x:20,z:18,yaw:0,distance:7.5,pitch:1.35},pavilion:{name:'转经长廊',x:17.5,z:10,yaw:Math.PI/2,distance:6.5,pitch:1.25},banruo:{name:'般若亭',x:17,z:-6.4,yaw:Math.PI/2,distance:6,pitch:1.22},chan:{name:'听禅堂',x:-22,z:5.2,yaw:0,distance:7,pitch:1.25}};
-function goPlace(key){const p=places[key];stopMeditation(false);closePractice();action=null;updateBow(false);moveTarget=null;player.position.set(p.x,groundHeight(p.x,p.z),p.z);player.rotation.y=key==='pond'?-Math.PI/2:0;yaw=p.yaw;distance=p.distance;pitch=p.pitch;cameraFocus.copy(player.position).add(new THREE.Vector3(0,2.1,0));$('places-button').querySelector('.place-current').textContent=p.name;document.querySelectorAll('[data-place]').forEach(b=>b.classList.toggle('selected',b.dataset.place===key));closePopovers();targetMarker.visible=false;toast(p.name+' · 慢慢来，不必赶路。');}
+function goPlace(key){const p=places[key];stopMeditation(false);closePractice();action=null;updateBow(false);moveTarget=null;player.position.set(p.x,groundHeight(p.x,p.z),p.z);player.rotation.y=key==='pond'?-Math.PI/2:0;yaw=p.yaw;distance=p.distance;pitch=p.pitch;cameraFocus.copy(player.position).add(new THREE.Vector3(0,FOCUS_H,0));$('places-button').querySelector('.place-current').textContent=p.name;document.querySelectorAll('[data-place]').forEach(b=>b.classList.toggle('selected',b.dataset.place===key));closePopovers();targetMarker.visible=false;toast(p.name+' · 慢慢来，不必赶路。');}
 document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>goPlace(button.dataset.place)));
 $('home').addEventListener('click',()=>goPlace('temple'));
 
