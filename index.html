@@ -1910,13 +1910,7 @@ hallSeats.forEach(function(p){addMonk({x:p.x,y:HALL.floorY+.16,z:HALL.centerZ+p.
 // 已移除殿内正中站立的上香假人（挡门挡视线）
 // 殿前香炉上香者
 addMonk({x:-1.2,y:0,z:6.2,yaw:0,kind:'incense'});
-// 庭院走动者：进门后向内行进，在院内/后院/凉亭之间巡逻（全程不出院墙 z=22）
-addMonk({x:0,y:0,z:21,kind:'wander',yaw:0,
-  path:[{x:0,z:21},{x:0,z:16},{x:3,z:11},{x:8,z:7},{x:12,z:2},{x:15,z:-3},{x:17,z:-7},
-        {x:15,z:-3},{x:12,z:2},{x:8,z:7},{x:3,z:11},{x:0,z:16},{x:0,z:21}]});
-addMonk({x:1.4,y:0,z:21,kind:'wander',yaw:0,
-  path:[{x:1.4,z:21},{x:1.4,z:16},{x:-1,z:11},{x:-6,z:7},{x:-9,z:2},{x:-11,z:-4},{x:-9,z:-11},{x:-6,z:-15},
-        {x:-9,z:-11},{x:-11,z:-4},{x:-9,z:2},{x:-6,z:7},{x:-1,z:11},{x:1.4,z:16},{x:1.4,z:21}]});
+// 已移除庭院走动 NPC，保持寺院清净
 
 function updateMonks(dt,elapsed){
   staticMonks.forEach(function(m){
