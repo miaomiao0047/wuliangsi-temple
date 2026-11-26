@@ -1626,38 +1626,55 @@ for(var wsg of [-1,1]){
   carvedBox(wlen,1.5,.5,gateWall,wcx,.9,0,gate,.06);
   carvedBox(wlen,.16,.66,gateWallCap,wcx,1.72,0,gate,.04);
 }
-// ===== 山门石狮：一对低模国风石狮，立于牌坊立柱外侧、院墙门前 =====
+// ===== 山门石狮：传统青石守门狮，庄重沉稳，低模国风，对称镇门 =====
 (function buildGateLions(){
+  var stoneA=mats.stone, stoneB=mats.stoneTop;
+  var shadowStone=material('#7c807a',{roughness:1});   // 浅浮雕阴影石，与青灰石同系
   function lion(sign){
-    var L=new THREE.Group();L.position.set(sign*4.6,0,GATE_Z+.8);L.rotation.y=sign<0?-.28:.28;
+    var L=new THREE.Group();L.position.set(sign*4.6,0,GATE_Z+.8);L.rotation.y=sign<0?-.24:.24;L.scale.setScalar(1.18);
     scene.add(L);
-    // 石座（两层收分）
-    carvedBox(1.05,.22,1.05,mats.stone,0,.11,0,L,.03);
-    carvedBox(.88,.12,.88,mats.stoneTop,0,.28,0,L,.025);
-    // 蹲伏身躯
-    carvedBox(.62,.52,.72,mats.stoneTop,0,.62,-.06,L,.05);
-    // 前胸与前腿
-    carvedBox(.50,.44,.24,mats.stoneTop,0,.62,.34,L,.04);
-    for(var s2 of [-1,1])carvedBox(.17,.42,.20,mats.stone,s2*.20,.49,.40,L,.03);
-    // 头（低方）
-    carvedBox(.46,.42,.44,mats.stoneTop,0,1.06,.30,L,.05);
-    // 吻部
-    carvedBox(.26,.18,.20,mats.stone,0,.96,.52,L,.035);
-    // 鬃毛：四簇小球
-    for(var k=0;k<8;k++){
-      var a=k/8*Math.PI*2;
-      var m=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),mats.stone);
-      m.position.set(Math.sin(a)*.29,1.06+Math.cos(a)*.27,.22);m.castShadow=true;L.add(m);
+    // 石座：两层收分，宽厚稳重
+    carvedBox(1.18,.24,1.12,stoneA,0,.12,0,L,.035);
+    carvedBox(1.00,.14,.96,stoneB,0,.31,0,L,.028);
+    carvedBox(1.04,.05,1.00,stoneA,0,.40,0,L,.02);
+    // 蹲伏身躯：宽厚沉稳（低而实）
+    carvedBox(.74,.50,.80,stoneB,0,.68,-.08,L,.055);
+    carvedBox(.66,.14,.74,stoneB,0,.90,-.08,L,.04);   // 肩背石线
+    // 后腿蹲踞（两侧鼓起）
+    for(var s2 of [-1,1]){
+      carvedBox(.24,.30,.36,stoneB,s2*.36,.55,-.24,L,.035);
+      carvedBox(.26,.10,.30,stoneA,s2*.36,.44,-.22,L,.025); // 后爪
     }
-    // 双耳
-    for(var e of [-1,1])carvedBox(.13,.16,.10,mats.stone,e*.17,1.30,.30,L,.02);
-    // 眼睛（深色石点）
-    var eye=material('#3a3a36',{roughness:1});
-    for(var d of [-1,1]){var p=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),eye);p.position.set(d*.14,1.10,.52);L.add(p)}
-    // 尾巴（卷曲低模）
-    carvedBox(.16,.16,.42,mats.stone,0,.80,-.46,L,.03);
-    var tail=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),mats.stoneTop);
-    tail.position.set(0,.95,-.62);tail.castShadow=true;L.add(tail);
+    // 前胸与前腿：粗壮直立支撑
+    carvedBox(.58,.48,.26,stoneB,0,.68,.36,L,.045);
+    for(var f of [-1,1]){
+      carvedBox(.19,.44,.22,stoneB,f*.22,.63,.42,L,.03);
+      carvedBox(.23,.10,.26,stoneA,f*.22,.47,.44,L,.025);  // 前爪
+    }
+    // 头部：比例自然（小于身宽），略前伸
+    carvedBox(.42,.38,.40,stoneB,0,1.13,.26,L,.045);
+    carvedBox(.34,.26,.30,stoneA,0,1.09,.44,L,.035);       // 吻部收敛
+    carvedBox(.20,.08,.14,stoneA,0,1.02,.60,L,.02);        // 鼻梁（无牙）
+    // 鬃毛：层叠扁石雕块，贴合头侧，非圆球簇
+    for(var sd of [-1,1]){
+      for(var k=0;k<3;k++){
+        var w=new THREE.Mesh(new THREE.BoxGeometry(.10,.16,.30),stoneA);
+        w.position.set(sd*(.24+k*.035),1.16-k*.11,.22-k*.05);
+        w.rotation.z=sd*.20;w.rotation.y=sd*.12;w.castShadow=true;L.add(w);
+      }
+    }
+    // 耳：小巧后抿（非竖尖）
+    for(var e of [-1,1])carvedBox(.11,.12,.10,stoneA,e*.17,1.35,.20,L,.02);
+    // 眼：浅浮雕窄眼窝 + 极细深色眼缝（不凸不夸张）
+    for(var d of [-1,1]){
+      carvedBox(.11,.045,.02,shadowStone,d*.13,1.16,.61,L,.008);
+      var slit=new THREE.Mesh(new THREE.BoxGeometry(.075,.014,.012),material('#4a4a45',{roughness:1}));
+      slit.position.set(d*.13,1.16,.625);L.add(slit);
+    }
+    // 尾：贴身卷曲低模
+    carvedBox(.14,.14,.36,stoneA,0,.82,-.48,L,.03);
+    var t=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),stoneB);
+    t.position.set(0,.92,-.62);t.scale.set(1,1,.8);t.castShadow=true;L.add(t);
     L.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
     return L;
   }
