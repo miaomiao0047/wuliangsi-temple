@@ -960,9 +960,6 @@ for(const [x,z,s] of [[-5,2.1,1.05],[5,2.1,1.05],[-5.2,9.5,.9],[5.3,11,.9],[-12,
 
 // ===== 参道点缀：石灯 / 经幡 / 盆栽，压一压空白地面 =====
 (function decoratePath(){
-  // 参道两侧补石灯（避开院墙 z=22 与门洞）
-  for(const [x,z,sc] of [[-4.4,17,.9],[4.4,17,.9],[-4.6,12,.88],[4.6,12,.88],
-                          [-5.2,-6,.85],[5.2,-6,.85]])stoneLamp(x,z,sc);
   // 经幡：木杆 + 赭红/金黄布幡，立在参道与殿前两侧
   function banner(x,z,ry){
     var g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;scene.add(g);
