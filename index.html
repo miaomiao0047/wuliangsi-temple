@@ -567,7 +567,7 @@ for (let column = 0; column < 48; column++) {
     const start = Math.max(-8.57,-9.7 + row * 3.4 + (column % 3) * .64);
     const end = Math.min(8.57,-6.3 + row * 3.4 + (column % 3) * .64);
     if (end - start < .04) continue;
-    const plank = box(.479,.013,end-start-.016,plankMats[(column * 7 + row * 3) % 5],x,1.145,(start+end)/2,temple);
+    const plank = box(.479,.013,end-start-.016,plankMats[(column * 7 + row * 3) % 5],x,1.16,(start+end)/2,temple);
     plank.castShadow = false;
   }
 }
@@ -575,9 +575,9 @@ for (let level = 0; level < 5; level++) {
   const width = 9.8 + level * .22;
   const y = .94 - level * .21;
   const z = 9.0 + level * .40;
-  const step = carvedBox(width,.21,.43,mats.stoneTop,0,y,z,temple,.025);
+  const step = carvedBox(width,.21,.40,mats.stoneTop,0,y,z,temple,.025);
   walkSurfaces.push(step);
-  carvedBox(width+.045,.045,.095,tileMats[1],0,y+.072,z+.181,temple,.014);
+  carvedBox(width+.045,.045,.095,tileMats[1],0,y+.118,z+.166,temple,.014);
 }
 box(23.8,6.0,.22,mats.plaster,0,4.12,-8.2,temple);
 
