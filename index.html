@@ -1634,7 +1634,19 @@ for(var wsg of [-1,1]){
     var lion=createGuardianLion(opts);
     lion.position.set(sign*4.6,0,GATE_Z+.8);
     lion.rotation.y=0;   // 两狮都朝山门正面（+Z，迎客方向）
-    lion.scale.set(1.30,1.08,1.24);   // 横向加宽加厚，底座更沉稳；高度仅微增
+    lion.scale.setScalar(1.18);   // 整体等比（头部比例保持）
+    // 身体/底座继续加宽加厚，头部按需不变：按顶点高度平滑分区缩放（y<0.55全量、y>0.80不变）
+    lion.traverse(function(o){
+      if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;
+      var g=o.geometry,pos=g.attributes.position;
+      for(var i=0;i<pos.count;i++){
+        var vy=pos.getY(i);
+        var w=Math.max(0,Math.min(1,(.80-vy)/.25));   // 头(y>.80)权重0，身体底座(y<.55)权重1
+        pos.setX(i,pos.getX(i)*(1+.20*w));
+        pos.setZ(i,pos.getZ(i)*(1+.16*w));
+      }
+      pos.needsUpdate=true;g.computeVertexNormals();
+    });
     lion.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
     scene.add(lion);
     return lion;
