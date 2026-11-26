@@ -673,6 +673,50 @@ for (let i = 0; i < 41; i++) {
   for (const z of [-10.05,10.05]) carvedBox(.18,.20,.26,mats.woodLight,x,7.99,z,temple,.025);
 }
 createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge,roofMaterials);
+
+// ===== 藏式覆钵塔：大殿西前院配景竖向高点，总高约8.4m（低于大殿脊10.7）=====
+(function buildStupa(){
+  const S=new THREE.Group();S.position.set(-23,0,-5);scene.add(S);
+  // 两层收分方形石砌台基（青灰石 + 浅灰石面）
+  carvedBox(5.0,.52,5.0,mats.stone,0,.26,0,S,.055);
+  carvedBox(4.35,.42,4.35,mats.stoneTop,0,.73,0,S,.045);
+  // 台基顶面石线脚
+  box(4.6,.07,4.6,mats.stoneTop,0,.955,0,S);
+  // 塔身下层：暗红墙体 + 深红木角柱与构件
+  carvedBox(3.55,1.55,3.55,mats.plaster,0,1.76,0,S,.04);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.20,1.55,.20,mats.woodDark,sx*1.65,1.76,sz*1.65,S,.025);
+  box(3.66,.12,3.66,mats.wood,0,2.56,0,S);
+  // 层间金褐檐口线脚（过渡）
+  box(3.9,.10,3.9,mats.gold,0,1.02,0,S);
+  box(3.72,.10,3.72,mats.gold,0,2.60,0,S);
+  // 中层：逐层内收暗红墙体 + 深红木构件
+  carvedBox(2.95,1.42,2.95,mats.plaster,0,3.40,0,S,.035);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.16,1.42,.16,mats.woodDark,sx*1.35,3.40,sz*1.35,S,.02);
+  box(3.1,.10,3.1,mats.gold,0,4.15,0,S);
+  // 上层：再内收
+  carvedBox(2.35,1.10,2.35,mats.plaster,0,4.90,0,S,.03);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.14,1.10,.14,mats.woodDark,sx*1.06,4.90,sz*1.06,S,.018);
+  box(2.5,.10,2.5,mats.gold,0,5.49,0,S);
+  // 覆钵部：稳重圆鼓（压扁球），金褐色过渡
+  const bump=new THREE.Mesh(new THREE.SphereGeometry(1.0,24,16),mats.stoneTop);
+  bump.scale.set(1,0.78,1);bump.position.y=6.10;bump.castShadow=bump.receiveShadow=true;S.add(bump);
+  // 覆钵座圈
+  turned([[0,0],[1.22,0],[1.24,.08],[1.10,.16],[0,.18]],mats.woodDark,0,5.53,0,S,24);
+  // 金色塔刹：相轮（层层递小）+ 尖顶宝珠
+  turned([[0,0],[.46,0],[.46,.10],[.30,.16],[.30,.26],[0,.30]],mats.gold,0,6.66,0,S,20);
+  for(let i=0;i<7;i++){
+    const r=.34-i*.032,y=7.02+i*.115;
+    turned([[0,0],[r,0],[r,.035],[r*.72,.07],[0,.08]],mats.gold,0,y,0,S,18);
+  }
+  turned([[0,0],[.14,0],[.20,.10],[.17,.24],[.11,.38],[0,.52]],mats.gold,0,7.86,0,S,18);
+  const pearl=new THREE.Mesh(new THREE.SphereGeometry(.11,16,12),mats.gold);
+  pearl.position.y=8.47;pearl.castShadow=true;S.add(pearl);
+  S.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+  // 绕行提示：塔基外圈铺一圈浅石碎边（不占绕行道）
+  const ring=new THREE.Mesh(new THREE.RingGeometry(2.70,2.95,40),mats.stoneTop);
+  ring.rotation.x=-Math.PI/2;ring.position.set(-23,.02,-5);scene.add(ring);
+  window.__stupa=S;
+})();
 const mural = canvasTexture(960,420,(ctx,w,h) => {
   const sky = ctx.createLinearGradient(0,0,0,h);
   sky.addColorStop(0,'#304641');
@@ -1013,7 +1057,7 @@ const benches=[];
     for(var lx of [-1.32,0,1.32])for(var lz of [-.19,.19])add(.10,.44,.10,bm,lx,.22,lz);
     benches.push({group:g,x:x,z:z,ry:ry||0});
   }
-  [[-16,12,Math.PI],[14,14,Math.PI],[-19,-2,0],[18,-10,0],[-6,17,0]].forEach(function(b){bench(b[0],b[1],b[2])});
+  [[-16,12,Math.PI/2],[14,14,Math.PI/2],[-19,-2,Math.PI/2],[18,-10,Math.PI/2]].forEach(function(b){bench(b[0],b[1],b[2])});
 })();
 
 
@@ -1805,17 +1849,6 @@ makeText('听 禅 堂',3.2,'#f3d979',function(tex){
   m.position.set(0,3.3,3.31);m.rotation.y=0;meditationHall.add(m);
 });
 var chanGlow=new THREE.PointLight(0xffd9a0,3.5,12,2);chanGlow.position.set(0,2.6,0);meditationHall.add(chanGlow);
-// 听禅堂前松树（原菩提树已按院里统一改为松树）
-(function(){
-  var btree=new THREE.Group();btree.position.set(-25.6,.075,8.4);scene.add(btree);
-  var trunkMat=material('#4a3a2b',{roughness:1});
-  cylinder(.16,.28,3.0,trunkMat,0,1.5,0,btree,10);
-  var greens=['#2f4a35','#38563b','#294231','#3f5d40'];
-  for(var t=0;t<5;t++){
-    var f=t/4,rad=1.5-f*1.05, h=1.5-f*.35, y=1.2+f*3.4;
-    cylinder(0,rad,h,material(greens[t%greens.length],{roughness:1}),0,y+h/2,0,btree,10);
-  }
-})();
 // 听禅堂楼梯：堂前(z=6.6~9.2)三级石阶，通向堂内木地板(y≈.74)
 var CHAN_STAIRS={x:-22,near:9.2,far:6.6,halfWidth:1.5,steps:3};
 for(var st=0;st<3;st++){
@@ -2169,7 +2202,7 @@ function canStand(x,z) {
   // 头道门院墙：z=22 除门洞(|x|<2.55)外全部封住，必须走门洞才能进院
   if(Math.abs(z-GATE_Z)<.6 && Math.abs(x)>=2.55)return false;
   // 庭院树干：不可穿树（含我新增与原有）
-  var treeSpots=[[-13,2.2],[-11.5,5.8],[-16.2,-3],[10,20],[-30,14],[8,-22],[18,-14],[-10.8,17],[22,15],[-25.6,8.4],
+  var treeSpots=[[-13,2.2],[-11.5,5.8],[-16.2,-3],[10,20],[-30,14],[8,-22],[18,-14],[-10.8,17],[22,15],
                  [-17,-9],[16.7,-18.5],[23,-2],[-17,18]];
   for(var ti=0;ti<treeSpots.length;ti++){
     if(Math.hypot(x-treeSpots[ti][0],z-treeSpots[ti][1])<.55)return false;
