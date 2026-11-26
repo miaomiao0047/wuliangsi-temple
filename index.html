@@ -350,7 +350,7 @@ const rand = (a, b) => a + random() * (b - a);
 const clamp = THREE.MathUtils.clamp;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scene = new THREE.Scene();
-const walkBounds = {x:30,z:32};  // 扩到门外，供访客在头道门外集结
+const walkBounds = {x:34,z:32};  // 扩到门外，供访客在头道门外集结
 scene.background = new THREE.Color('#8fbfe6');
 scene.fog = new THREE.Fog('#b8d4ec', 70, 200);
 const camera = new THREE.PerspectiveCamera(53, innerWidth / innerHeight, .24, 215);
@@ -676,7 +676,7 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
 
 // ===== 藏式覆钵塔：大殿西前院配景竖向高点，总高约8.4m（低于大殿脊10.7）=====
 (function buildStupa(){
-  const S=new THREE.Group();S.position.set(-27,0,-5);scene.add(S);
+  const S=new THREE.Group();S.position.set(-28,0,-5);scene.add(S);
   // 两层收分方形石砌台基（青灰石 + 浅灰石面）
   carvedBox(3.8,.52,3.8,mats.stone,0,.26,0,S,.05);
   carvedBox(3.3,.42,3.3,mats.stoneTop,0,.73,0,S,.04);
@@ -712,9 +712,20 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
   const pearl=new THREE.Mesh(new THREE.SphereGeometry(.11,16,12),mats.gold);
   pearl.position.y=8.47;pearl.castShadow=true;S.add(pearl);
   S.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-  // 绕行提示：塔基外圈铺一圈浅石碎边（不占绕行道）
-  const ring=new THREE.Mesh(new THREE.RingGeometry(2.05,2.25,40),mats.stoneTop);
-  ring.rotation.x=-Math.PI/2;ring.position.set(-27,.02,-5);scene.add(ring);
+  // 绕塔步道：环形石板路（半径2.3~3.6，宽1.3m），内外石缘+放射缝线，与寺院石作统一
+  const walk=new THREE.Group();walk.position.set(-28,0,-5);scene.add(walk);
+  const path=new THREE.Mesh(new THREE.RingGeometry(2.30,3.60,64),mats.stoneTop);
+  path.rotation.x=-Math.PI/2;path.position.y=.03;path.receiveShadow=true;walk.add(path);
+  for(const rr of [2.30,3.60]){
+    const edge=new THREE.Mesh(new THREE.RingGeometry(rr,rr+.08,64),mats.stone);
+    edge.rotation.x=-Math.PI/2;edge.position.y=.045;walk.add(edge);
+  }
+  // 放射状石板缝（36块石板）
+  for(let i=0;i<36;i++){
+    const a=i/36*Math.PI*2;
+    const seam=new THREE.Mesh(new THREE.BoxGeometry(.025,.012,1.3),mats.stone);
+    seam.position.set(Math.sin(a)*2.95,.05,Math.cos(a)*2.95);seam.rotation.y=a;walk.add(seam);
+  }
   window.__stupa=S;
 })();
 const mural = canvasTexture(960,420,(ctx,w,h) => {
