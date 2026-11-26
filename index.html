@@ -690,12 +690,12 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
   box(3.0,.10,3.0,mats.gold,0,1.02,0,S);
   box(2.85,.10,2.85,mats.gold,0,2.60,0,S);
   // 中层：逐层内收暗红墙体 + 深红木构件
-  carvedBox(2.25,1.42,2.25,mats.plaster,0,3.40,0,S,.03);
-  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.16,1.42,.16,mats.woodDark,sx*1.03,3.40,sz*1.03,S,.02);
+  carvedBox(2.25,1.58,2.25,mats.plaster,0,3.32,0,S,.03);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.16,1.58,.16,mats.woodDark,sx*1.03,3.32,sz*1.03,S,.02);
   box(2.4,.10,2.4,mats.gold,0,4.15,0,S);
   // 上层：再内收
-  carvedBox(1.8,1.10,1.8,mats.plaster,0,4.90,0,S,.025);
-  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.14,1.10,.14,mats.woodDark,sx*.81,4.90,sz*.81,S,.018);
+  carvedBox(1.8,1.46,1.8,mats.plaster,0,4.72,0,S,.025);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.14,1.46,.14,mats.woodDark,sx*.81,4.72,sz*.81,S,.018);
   box(1.95,.10,1.95,mats.gold,0,5.49,0,S);
   // 覆钵部：稳重圆鼓（压扁球），金褐色过渡
   const bump=new THREE.Mesh(new THREE.SphereGeometry(.80,24,16),mats.stoneTop);
