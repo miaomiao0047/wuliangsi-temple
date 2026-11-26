@@ -678,30 +678,30 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
 (function buildStupa(){
   const S=new THREE.Group();S.position.set(-23,0,-5);scene.add(S);
   // 两层收分方形石砌台基（青灰石 + 浅灰石面）
-  carvedBox(5.0,.52,5.0,mats.stone,0,.26,0,S,.055);
-  carvedBox(4.35,.42,4.35,mats.stoneTop,0,.73,0,S,.045);
+  carvedBox(3.8,.52,3.8,mats.stone,0,.26,0,S,.05);
+  carvedBox(3.3,.42,3.3,mats.stoneTop,0,.73,0,S,.04);
   // 台基顶面石线脚
-  box(4.6,.07,4.6,mats.stoneTop,0,.955,0,S);
+  box(3.5,.07,3.5,mats.stoneTop,0,.955,0,S);
   // 塔身下层：暗红墙体 + 深红木角柱与构件
-  carvedBox(3.55,1.55,3.55,mats.plaster,0,1.76,0,S,.04);
-  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.20,1.55,.20,mats.woodDark,sx*1.65,1.76,sz*1.65,S,.025);
-  box(3.66,.12,3.66,mats.wood,0,2.56,0,S);
+  carvedBox(2.7,1.55,2.7,mats.plaster,0,1.76,0,S,.035);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.20,1.55,.20,mats.woodDark,sx*1.25,1.76,sz*1.25,S,.025);
+  box(2.8,.12,2.8,mats.wood,0,2.56,0,S);
   // 层间金褐檐口线脚（过渡）
-  box(3.9,.10,3.9,mats.gold,0,1.02,0,S);
-  box(3.72,.10,3.72,mats.gold,0,2.60,0,S);
+  box(3.0,.10,3.0,mats.gold,0,1.02,0,S);
+  box(2.85,.10,2.85,mats.gold,0,2.60,0,S);
   // 中层：逐层内收暗红墙体 + 深红木构件
-  carvedBox(2.95,1.42,2.95,mats.plaster,0,3.40,0,S,.035);
-  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.16,1.42,.16,mats.woodDark,sx*1.35,3.40,sz*1.35,S,.02);
-  box(3.1,.10,3.1,mats.gold,0,4.15,0,S);
+  carvedBox(2.25,1.42,2.25,mats.plaster,0,3.40,0,S,.03);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.16,1.42,.16,mats.woodDark,sx*1.03,3.40,sz*1.03,S,.02);
+  box(2.4,.10,2.4,mats.gold,0,4.15,0,S);
   // 上层：再内收
-  carvedBox(2.35,1.10,2.35,mats.plaster,0,4.90,0,S,.03);
-  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.14,1.10,.14,mats.woodDark,sx*1.06,4.90,sz*1.06,S,.018);
-  box(2.5,.10,2.5,mats.gold,0,5.49,0,S);
+  carvedBox(1.8,1.10,1.8,mats.plaster,0,4.90,0,S,.025);
+  for(const sx of [-1,1])for(const sz of [-1,1])carvedBox(.14,1.10,.14,mats.woodDark,sx*.81,4.90,sz*.81,S,.018);
+  box(1.95,.10,1.95,mats.gold,0,5.49,0,S);
   // 覆钵部：稳重圆鼓（压扁球），金褐色过渡
-  const bump=new THREE.Mesh(new THREE.SphereGeometry(1.0,24,16),mats.stoneTop);
+  const bump=new THREE.Mesh(new THREE.SphereGeometry(.80,24,16),mats.stoneTop);
   bump.scale.set(1,0.78,1);bump.position.y=6.10;bump.castShadow=bump.receiveShadow=true;S.add(bump);
   // 覆钵座圈
-  turned([[0,0],[1.22,0],[1.24,.08],[1.10,.16],[0,.18]],mats.woodDark,0,5.53,0,S,24);
+  turned([[0,0],[.98,0],[1.0,.08],[.88,.16],[0,.18]],mats.woodDark,0,5.53,0,S,24);
   // 金色塔刹：相轮（层层递小）+ 尖顶宝珠
   turned([[0,0],[.46,0],[.46,.10],[.30,.16],[.30,.26],[0,.30]],mats.gold,0,6.66,0,S,20);
   for(let i=0;i<7;i++){
@@ -713,7 +713,7 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
   pearl.position.y=8.47;pearl.castShadow=true;S.add(pearl);
   S.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
   // 绕行提示：塔基外圈铺一圈浅石碎边（不占绕行道）
-  const ring=new THREE.Mesh(new THREE.RingGeometry(2.70,2.95,40),mats.stoneTop);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(2.05,2.25,40),mats.stoneTop);
   ring.rotation.x=-Math.PI/2;ring.position.set(-23,.02,-5);scene.add(ring);
   window.__stupa=S;
 })();
