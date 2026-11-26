@@ -956,7 +956,7 @@ function stoneLamp(x,z,scale=1) {
   cap.rotation.y=Math.PI/4;
   sphere(.067,lampStone,0,1.42,0,lantern,1,.87,1);
 }
-for(const [x,z,s] of [[-5,2.1,1.05],[5,2.1,1.05],[-5.2,9.5,.9],[5.2,9.5,.9],[-5,6,.84],[5,6,.84]])stoneLamp(x,z,s);
+for(const [x,z,s] of [[-5,1,1.0],[5,1,1.0],[-5,6,.92],[5,6,.92],[-5,11,.86],[5,11,.86]])stoneLamp(x,z,s);
 
 // ===== 参道点缀：石灯 / 经幡 / 盆栽，压一压空白地面 =====
 (function decoratePath(){
@@ -2076,7 +2076,7 @@ function updatePracticeProps(){
 
 // Camera orbit and ground navigation work with both a pointer and touch.
 const FOCUS_H=2.5;
-const templeView={yaw:0,pitch:1.56,distance:7.0};
+const templeView={yaw:0,pitch:1.52,distance:7.0};
 let {yaw,pitch,distance}=templeView;
 const cameraFocus=new THREE.Vector3(0,FOCUS_H,28),desiredFocus=cameraFocus.clone();
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster(),groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-.04);
