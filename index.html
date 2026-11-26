@@ -1633,7 +1633,7 @@ for(var wsg of [-1,1]){
   window.__gateLions=[-1,1].map(function(sign){
     var lion=createGuardianLion(opts);
     lion.position.set(sign*4.6,0,GATE_Z+.8);
-    lion.rotation.y=sign<0?-Math.PI/2:Math.PI/2;   // 两狮相对而坐，面向参道
+    lion.rotation.y=0;   // 两狮都朝山门正面（+Z，迎客方向）
     lion.scale.setScalar(1.18);
     lion.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
     scene.add(lion);
