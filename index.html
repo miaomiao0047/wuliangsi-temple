@@ -2231,9 +2231,11 @@ function endPointer(e){
         if($('wheel-count'))$('wheel-count').textContent=wheelCount;
         toast('经筒转一圈 · 六字真言随风而转。');return;}
     }
-    // 点到殿前铸铁香炉则上香（炉口升起轻烟）
+    // 点到殿前铸铁香炉则上香（炉口升起轻烟）；近距时不拦截，保证能 freely 离开
     const burnerHits=raycaster.intersectObject(incenseBurner,true);
-    if(burnerHits.length){offerIncense();return;}
+    if(burnerHits.length && Math.hypot(player.position.x,player.position.z-4.6)>2.5){
+      offerIncenseAtBurner();   // 不 return：继续走地面点击，玩家可去任何地方
+    }
     // 点到功德箱则随喜功德
     const donationHits=raycaster.intersectObject(donation,true);
     if(donationHits.length){offerDonation();return;}
@@ -2519,11 +2521,28 @@ function updateSmoke(dt){
     if(p.life>2.6){scene.remove(p.sprite);p.sprite.material.map.dispose();p.sprite.material.dispose();incenseSmokes.splice(i,1);}
   }
 }
+// 点击香炉专用：只上香效果，不强制移动玩家（避免把人锁在炉前）
+var lastBurnerOffer=0;
+function offerIncenseAtBurner(){
+  var now=performance.now();
+  if(now-lastBurnerOffer<1500)return;
+  lastBurnerOffer=now;
+  incenseActive=true;
+  for(var i=0;i<7;i++)setTimeout(function(k){return function(){makeSmokeParticle((k%3-1)*.08,1.7,4.6)}}(i),i*170);
+  if(soundEnabled&&effectsEnabled){ensureAudio();templeAudio.chime();}
+  incenseCount++;storage.set('incenseCount',incenseCount);
+  toast('在殿前香炉上了三炷香 · 愿所求皆安。');
+  var btn=$('incense-button');if(btn){btn.classList.remove('pulse');void btn.offsetWidth;btn.classList.add('pulse');}
+}
 function offerIncense(){
   var spots=[{x:0,z:4.6,name:'殿前香炉'},{x:0,z:-4.4,name:'殿内香炉'}];
   var near=spots[0],best=1e9;
   spots.forEach(function(sp){var d=Math.hypot(player.position.x-sp.x,player.position.z-sp.z);if(d<best){best=d;near=sp}});
-  moveTarget=new THREE.Vector3(near.x,0,near.z+1.4);action=null;updateBow(false);
+  // 已在炉前（<2.5m）时不再强制移动，避免把玩家锁在香炉旁
+  if(Math.hypot(player.position.x-near.x,player.position.z-near.z)>2.5){
+    moveTarget=new THREE.Vector3(near.x,0,near.z+1.4);
+  }
+  action=null;updateBow(false);
   monkMotion?.greet();
   var bx=near.x,bz=near.z,by=near.z<0?3.1:1.7;
   if(near.z>0)incenseActive=true;   // 殿前铸铁香炉：口沿缓缓升起淡白轻烟
