@@ -1639,11 +1639,13 @@ for(var wsg of [-1,1]){
     lion.traverse(function(o){
       if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;
       var g=o.geometry,pos=g.attributes.position;
+      var baseTop=.18, lift=.10;   // 底座加高：底部不动，座顶抬高lift，身体整体上移
       for(var i=0;i<pos.count;i++){
         var vy=pos.getY(i);
         var w=Math.max(0,Math.min(1,(.80-vy)/.25));   // 头(y>.80)权重0，身体底座(y<.55)权重1
-        pos.setX(i,pos.getX(i)*(1+.20*w));
-        pos.setZ(i,pos.getZ(i)*(1+.16*w));
+        pos.setX(i,pos.getX(i)*(1+.35*w));
+        pos.setZ(i,pos.getZ(i)*(1+.30*w));
+        pos.setY(i, vy<baseTop ? vy*(baseTop+lift)/baseTop : vy+lift);
       }
       pos.needsUpdate=true;g.computeVertexNormals();
     });
