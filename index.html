@@ -552,7 +552,7 @@ temple.position.z = HALL.centerZ;
 scene.add(temple);
 const hallRoof = {width:28,depth:20.7,eave:8.1,ridge:10.7};
 carvedBox(25,1,17.8,mats.stone,0,.38,0,temple,.085);
-carvedBox(25.25,.16,18.05,mats.stoneTop,0,.94,0,temple,.055);
+carvedBox(25.25,.16,17.4,mats.stoneTop,0,.94,0,temple,.055);
 for (const sign of [-1,1]) {
   for (let i = 0; i < 4; i++) {
     carvedBox(1.75,.52,.11,tileMats[(i + 2) % 5],sign * (6.24 + i * 1.80),.49,8.93,temple,.028);
@@ -577,7 +577,7 @@ for (let level = 0; level < 5; level++) {
   const z = 9.0 + level * .40;
   const step = carvedBox(width,.21,.40,mats.stoneTop,0,y,z,temple,.025);
   walkSurfaces.push(step);
-  carvedBox(width+.045,.045,.095,tileMats[1],0,y+.118,z+.166,temple,.014);
+  carvedBox(width+.045,.045,.095,tileMats[1],0,y+.118,z+.25,temple,.014);
 }
 box(23.8,6.0,.22,mats.plaster,0,4.12,-8.2,temple);
 
