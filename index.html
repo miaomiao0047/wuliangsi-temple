@@ -1776,7 +1776,18 @@ for(var fx of [-1,1])for(var fz of [-1,1])
 // 炉身：长方形直壁平口（无盖无繁复雕花）
 carvedBox(1.70,.62,1.00,iron,0,.85,0,incenseBurner,.04);
 box(1.48,.02,.80,ironDark,0,1.155,0,incenseBurner);              // 炉口内壁
-carvedBox(1.78,.06,1.08,iron,0,1.17,0,incenseBurner,.02);        // 平口沿
+// 炉内沙土与香灰：浅灰褐沙面（略低于沿口）+ 几撮深灰香灰堆
+var sandMat=material('#a89a86',{roughness:1});
+var ashMat=material('#6e6a63',{roughness:1});
+box(1.46,.03,.78,sandMat,0,1.205,0,incenseBurner);
+for(var ai=0;ai<5;ai++){
+  var ax=-.5+ai*.25, az=(ai%2? .18:-.16);
+  var ashLump=new THREE.Mesh(new THREE.SphereGeometry(.09,8,5),ashMat);
+  ashLump.position.set(ax,1.225,az);ashLump.scale.set(1.3,.35,1);ashLump.castShadow=true;incenseBurner.add(ashLump);
+}
+// 外翻厚沿：宽于炉身、明显凸起
+carvedBox(1.86,.10,1.16,iron,0,1.18,0,incenseBurner,.025);
+carvedBox(1.90,.025,1.20,ironDark,0,1.235,0,incenseBurner,.012);
 // 三根香（插在炉口）
 var incenseSticks=[];
 for(var si=0;si<3;si++){
@@ -2080,8 +2091,6 @@ hallSeats.forEach(function(p){addMonk({x:p.x,y:HALL.floorY+.16,z:HALL.centerZ+p.
 // 已移除大殿内两个站立假人（挡路挡视线）
 // 上香者：站在殿内香炉前，面向香炉(-Z)，定时做合掌/跪拜
 // 已移除殿内正中站立的上香假人（挡门挡视线）
-// 殿前香炉上香者
-addMonk({x:-1.2,y:0,z:6.2,yaw:0,kind:'incense'});
 // 已移除庭院走动 NPC，保持寺院清净
 
 function updateMonks(dt,elapsed){
