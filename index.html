@@ -676,7 +676,7 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
 
 // ===== 藏式覆钵塔：大殿西前院配景竖向高点，总高约8.4m（低于大殿脊10.7）=====
 (function buildStupa(){
-  const S=new THREE.Group();S.position.set(-23,0,-5);scene.add(S);
+  const S=new THREE.Group();S.position.set(-27,0,-5);scene.add(S);
   // 两层收分方形石砌台基（青灰石 + 浅灰石面）
   carvedBox(3.8,.52,3.8,mats.stone,0,.26,0,S,.05);
   carvedBox(3.3,.42,3.3,mats.stoneTop,0,.73,0,S,.04);
@@ -714,7 +714,7 @@ createTileRoof(temple,hallRoof.width,hallRoof.depth,hallRoof.eave,hallRoof.ridge
   S.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
   // 绕行提示：塔基外圈铺一圈浅石碎边（不占绕行道）
   const ring=new THREE.Mesh(new THREE.RingGeometry(2.05,2.25,40),mats.stoneTop);
-  ring.rotation.x=-Math.PI/2;ring.position.set(-23,.02,-5);scene.add(ring);
+  ring.rotation.x=-Math.PI/2;ring.position.set(-27,.02,-5);scene.add(ring);
   window.__stupa=S;
 })();
 const mural = canvasTexture(960,420,(ctx,w,h) => {
