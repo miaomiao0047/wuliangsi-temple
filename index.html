@@ -350,7 +350,7 @@ const rand = (a, b) => a + random() * (b - a);
 const clamp = THREE.MathUtils.clamp;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scene = new THREE.Scene();
-const walkBounds = {x:26,z:32};  // 扩到门外，供访客在头道门外集结
+const walkBounds = {x:30,z:32};  // 扩到门外，供访客在头道门外集结
 scene.background = new THREE.Color('#8fbfe6');
 scene.fog = new THREE.Fog('#b8d4ec', 70, 200);
 const camera = new THREE.PerspectiveCamera(53, innerWidth / innerHeight, .24, 215);
