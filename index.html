@@ -1762,28 +1762,39 @@ createTileRoof(corrRoofHolder,5.8,14,3.25,4.5,{
   fascia:wheelRed, cap:wheelGold
 });
 corridor.position.y=0;
-// 香炉（殿前，藏式青铜香炉）
+// 香炉（殿前中轴线，长方形铸铁平口炉 + 宽厚石底座 + 四角炉足）
 const incenseBurner=new THREE.Group();incenseBurner.position.set(0,0,4.6);scene.add(incenseBurner);
-turned([[0,0],[.30,0],[.34,.08],[.38,.2],[.42,.5],[.46,.72],[.40,.8],[.44,.86],[.40,.92],[.30,.92],[.28,.80]],
-  material('#9a7a3c',{metalness:.4,roughness:.6}),0,0,0,incenseBurner,32);
-cylinder(.40,.40,.03,material('#b5aa8c'),0,.92,0,incenseBurner,28);
-for(const sx of [-1,1]){const ring=new THREE.Mesh(new THREE.TorusGeometry(.14,.04,6,16),wheelBrass);ring.position.set(sx*.46,.72,0);incenseBurner.add(ring);}
+var iron=material('#4b4f4d',{metalness:.28,roughness:.82});       // 古铁深灰
+var ironDark=material('#3a3e3d',{metalness:.25,roughness:.86});   // 炉口内壁深铁
+var burnerStone=mats.stone;
+// 宽厚长方形石底座（两层收分）
+carvedBox(2.10,.20,1.30,burnerStone,0,.10,0,incenseBurner,.03);
+carvedBox(1.90,.16,1.14,mats.stoneTop,0,.28,0,incenseBurner,.025);
+// 四角简约炉足（短方柱）
+for(var fx of [-1,1])for(var fz of [-1,1])
+  carvedBox(.16,.22,.16,iron,fx*.66,.47,fz*.40,incenseBurner,.02);
+// 炉身：长方形直壁平口（无盖无繁复雕花）
+carvedBox(1.70,.62,1.00,iron,0,.85,0,incenseBurner,.04);
+box(1.48,.02,.80,ironDark,0,1.155,0,incenseBurner);              // 炉口内壁
+carvedBox(1.78,.06,1.08,iron,0,1.17,0,incenseBurner,.02);        // 平口沿
+// 三根香（插在炉口）
 var incenseSticks=[];
 for(var si=0;si<3;si++){
-  var sx=-.12+si*.12;
-  var stick=cylinder(.011,.011,.7,mats.woodLight,sx,1.26,0,incenseBurner,6);
-  var ember=sphere(.020,material('#ff7a2a',{emissive:'#ff5a18',emissiveIntensity:1.4}),sx,1.62,0,incenseBurner);
+  var sx=-.16+si*.16;
+  var stick=cylinder(.011,.011,.70,mats.woodLight,sx,1.48,0,incenseBurner,6);
+  var ember=sphere(.020,material('#ff7a2a',{emissive:'#ff5a18',emissiveIntensity:1.4}),sx,1.84,0,incenseBurner);
   incenseSticks.push({x:sx,ember:ember,stick:stick,phase:si*2.1});
 }
-// 持续青烟（每根香一缕，细而不断）
+// 轻烟：初始隐藏，点击上香后缓缓升起（淡白色）
 var incenseSmoke=[];
+var incenseActive=false,incenseLift=0;
 function makeIncenseSmoke(x){
   var c=document.createElement('canvas');c.width=c.height=48;
   var cx=c.getContext('2d'),g=cx.createRadialGradient(24,24,1,24,24,22);
-  g.addColorStop(0,'rgba(225,230,220,.42)');g.addColorStop(1,'rgba(225,230,220,0)');
+  g.addColorStop(0,'rgba(232,235,230,.40)');g.addColorStop(1,'rgba(232,235,230,0)');
   cx.fillStyle=g;cx.fillRect(0,0,48,48);
-  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:.4,depthWrite:false}));
-  sp.position.set(x,1.65,0);sp.scale.setScalar(.10);scene.add(sp);
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false}));
+  sp.position.set(x,1.88,0);sp.scale.setScalar(.10);sp.visible=false;scene.add(sp);
   incenseSmoke.push({sprite:sp,life:Math.random()*2,baseX:x});
 }
 incenseSticks.forEach(function(st){makeIncenseSmoke(st.x);makeIncenseSmoke(st.x)});
@@ -1835,12 +1846,15 @@ function updateCandles(dt,t){
   incenseSticks.forEach(function(st){
     st.ember.material.emissiveIntensity=1.2+Math.sin(t*5+st.phase)*.35;
   });
+  incenseLift+=(incenseActive?1:0-incenseLift)*Math.min(1,dt*1.2);
   incenseSmoke.forEach(function(p){
+    p.sprite.visible=incenseLift>.02;
+    if(!p.sprite.visible)return;
     p.life+=dt*.45;
-    if(p.life>2){p.life=0;p.sprite.position.set(p.baseX,1.65,0)}
-    p.sprite.position.y=1.65+p.life*.85;
+    if(p.life>2){p.life=0;p.sprite.position.set(p.baseX,1.88,0)}
+    p.sprite.position.y=1.88+p.life*.85;
     p.sprite.position.x=p.baseX+Math.sin(p.life*3+p.baseX*9)*.07;
-    p.sprite.material.opacity=.42*(1-p.life/2);
+    p.sprite.material.opacity=.42*(1-p.life/2)*incenseLift;
     p.sprite.scale.setScalar(.10+p.life*.16);
   });
 }
@@ -2206,6 +2220,9 @@ function endPointer(e){
         if($('wheel-count'))$('wheel-count').textContent=wheelCount;
         toast('经筒转一圈 · 六字真言随风而转。');return;}
     }
+    // 点到殿前铸铁香炉则上香（炉口升起轻烟）
+    const burnerHits=raycaster.intersectObject(incenseBurner,true);
+    if(burnerHits.length){offerIncense();return;}
     // 点到功德箱则随喜功德
     const donationHits=raycaster.intersectObject(donation,true);
     if(donationHits.length){offerDonation();return;}
@@ -2498,6 +2515,7 @@ function offerIncense(){
   moveTarget=new THREE.Vector3(near.x,0,near.z+1.4);action=null;updateBow(false);
   monkMotion?.greet();
   var bx=near.x,bz=near.z,by=near.z<0?3.1:1.7;
+  if(near.z>0)incenseActive=true;   // 殿前铸铁香炉：口沿缓缓升起淡白轻烟
   for(var i=0;i<7;i++)setTimeout(function(k){return function(){makeSmokeParticle(bx+(k%3-1)*.08,by,bz)}}(),i*170);
   if(soundEnabled&&effectsEnabled){ensureAudio();templeAudio.chime();}
   bumpCount('incense');incenseCount++;storage.set('incenseCount',incenseCount);
